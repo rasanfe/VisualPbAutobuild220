@@ -126,9 +126,9 @@ String is_SetupFile, is_CloudTemplateFile, is_JWTClassTemplateName
 String is_projectName, is_project_type, is_authtemplate, is_solutionname, is_RuntimeVersion, is_WebAPIURL
 String is_AutoPath, is_DeploymentVersion
 n_runandwait in_rwait
+Constant String is_DeploymentPath="C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild"
 
 end variables
-
 forward prototypes
 private function boolean wf_run_bat (string as_script, string as_filename)
 private subroutine wf_version (statictext ast_version, statictext ast_patform)
@@ -203,10 +203,12 @@ SetNull(lul_handle)
 GetModuleFilename(lul_handle, ls_Path, len(ls_Path))
 
 if right(UPPER(ls_path), 7)="220.EXE" or right(UPPER(ls_path), 7)="X64.EXE" then
-	ls_path="C:\proyecto pw2022\compilar\compilar.exe"
+	ls_path=is_DeploymentPath+"\vpbautobuild.exe"
 end if
 
-gs_appdir=left(ls_path, len(ls_path) - (len("compilar.exe") + 1))
+gs_appdir=left(ls_path, len(ls_path) - (len("vpbautobuild.exe") + 1))
+
+
 
 end subroutine
 
@@ -1075,9 +1077,9 @@ Long ll_TotalItems
 wf_version(st_myversion, st_platform)
 
 is_AutoPath =  gs_appdir+"\auto\"
-is_SetupFile=gs_appdir+"\"+"setup.ini"
 is_CloudTemplateFile=gs_appdir+"\"+"CloudSetting.ini"
 is_JWTClassTemplateName = "DefaultUserStore.cs"
+is_SetupFile=gs_appdir+"\"+"setup.ini"
 
 ls_JsonPath=ProfileString(is_SetupFile, "setup", "json", "")
 
@@ -1310,7 +1312,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2022-12-24"), Time("20:13:40.000000"))
+datetime value = DateTime(Date("2022-12-29"), Time("15:58:34.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1333,7 +1335,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2022-12-24"), Time("20:13:40.000000"))
+datetime value = DateTime(Date("2022-12-29"), Time("15:58:34.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
