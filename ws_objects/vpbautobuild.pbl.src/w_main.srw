@@ -129,6 +129,7 @@ n_runandwait in_rwait
 Constant String is_DeploymentPath="C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild"
 
 end variables
+
 forward prototypes
 private function boolean wf_run_bat (string as_script, string as_filename)
 private subroutine wf_version (statictext ast_version, statictext ast_patform)
@@ -226,17 +227,17 @@ ls_Emp_Input= String(lbl_data, EncodingANSI!)
 
 SetNull(lbl_data)
 
-ls_UserName = ProfileString(is_SetupFile, as_JsonFile, "UserName", ProfileString(is_SetupFile, "Setup", "UserName", ""))
-ls_UserPass =  wf_DecodeBase64Url(ProfileString(is_SetupFile, as_JsonFile, "UserPass", ProfileString(is_SetupFile, "Setup", "UserPass", "")))
+ls_UserName = ProfileString(is_SetupFile, as_JsonFile, "UserName", ProfileString(is_SetupFile, "setup", "UserName", ""))
+ls_UserPass =  wf_DecodeBase64Url(ProfileString(is_SetupFile, as_JsonFile, "UserPass", ProfileString(is_SetupFile, "setup", "UserPass", "")))
 
 //La información del Claim se puede guardar en general para todos los proyectos o especificar indiviualmente.
-ls_Scope = ProfileString(is_SetupFile, as_JsonFile, "Scope", ProfileString(is_SetupFile, "Setup", "Scope", ""))
-ls_Name =  ProfileString(is_SetupFile, as_JsonFile, "Name", ProfileString(is_SetupFile, "Setup", "Name", ""))
-ls_GivenName  = ProfileString(is_SetupFile, as_JsonFile, "GivenName", ProfileString(is_SetupFile, "Setup", "GivenName", ""))
-ls_FamilyName =  ProfileString(is_SetupFile, as_JsonFile, "FamilyName", ProfileString(is_SetupFile, "Setup", "FamilyName", ""))
-ls_WebSite =  ProfileString(is_SetupFile, as_JsonFile, "WebSite", ProfileString(is_SetupFile, "Setup", "WebSite", ""))
-ls_Email  =  ProfileString(is_SetupFile, as_JsonFile, "Email", ProfileString(is_SetupFile, "Setup", "Email", ""))
-ls_EmailVerified =  ProfileString(is_SetupFile, as_JsonFile, "EmailVerified", ProfileString(is_SetupFile, "Setup", "EmailVerified", ""))
+ls_Scope = ProfileString(is_SetupFile, as_JsonFile, "Scope", ProfileString(is_SetupFile, "setup", "Scope", ""))
+ls_Name =  ProfileString(is_SetupFile, as_JsonFile, "Name", ProfileString(is_SetupFile, "setup", "Name", ""))
+ls_GivenName  = ProfileString(is_SetupFile, as_JsonFile, "GivenName", ProfileString(is_SetupFile, "setup", "GivenName", ""))
+ls_FamilyName =  ProfileString(is_SetupFile, as_JsonFile, "FamilyName", ProfileString(is_SetupFile, "setup", "FamilyName", ""))
+ls_WebSite =  ProfileString(is_SetupFile, as_JsonFile, "WebSite", ProfileString(is_SetupFile, "setup", "WebSite", ""))
+ls_Email  =  ProfileString(is_SetupFile, as_JsonFile, "Email", ProfileString(is_SetupFile, "setup", "Email", ""))
+ls_EmailVerified =  ProfileString(is_SetupFile, as_JsonFile, "EmailVerified", ProfileString(is_SetupFile, "setup", "EmailVerified", ""))
 
 ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"UserName"+char(34), char(34)+ls_UserName+char(34))
 ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"UserPass"+char(34), char(34)+ls_UserPass+char(34))
@@ -280,8 +281,6 @@ ls_MinimumCompatibleVersion = sle_minimum.Text
 
 ls_DeploymentVersion = ls_ProductVersion4
 
-//if len(ls_ProductVersion4) = 1 THEN ls_ProductVersion4 = "00"+ ls_ProductVersion4
-//if len(ls_ProductVersion4) = 2 THEN ls_ProductVersion4 = "0"+ ls_ProductVersion4
 
 ls_ProductVersion=ls_ProductVersion1+"."+ls_ProductVersion2+"."+ls_ProductVersion3+"."+ls_ProductVersion4
 ls_FileVersion = ls_ProductVersion
@@ -382,10 +381,10 @@ IF is_project_type = "PowerServer" THEN
 	END IF	
 	//Crear Bat para copiar ini de configuración de PowerServer no Publicado en Repositorio	
 	 IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
-		SetProfileString ( is_CloudTemplateFile, "Users" , "UserName",  ProfileString(is_SetupFile, ls_JsonFile, "UserName", ProfileString(is_SetupFile, "Setup", "UserName", "")))
-		SetProfileString ( is_CloudTemplateFile, "Users" , "UserPass",  ProfileString(is_SetupFile, ls_JsonFile, "UserPass", ProfileString(is_SetupFile, "Setup", "UserPass", "")))
+		SetProfileString ( is_CloudTemplateFile, "Users" , "UserName",  ProfileString(is_SetupFile, ls_JsonFile, "UserName", ProfileString(is_SetupFile, "setup", "UserName", "")))
+		SetProfileString ( is_CloudTemplateFile, "Users" , "UserPass",  ProfileString(is_SetupFile, ls_JsonFile, "UserPass", ProfileString(is_SetupFile, "setup", "UserPass", "")))
 		ls_TokenURL = is_WebAPIURL +"/connect/token"
-		SetProfileString ( is_CloudTemplateFile, "Setup" , "TokenURL",  ls_TokenURL)
+		SetProfileString ( is_CloudTemplateFile, "setup" , "TokenURL",  ls_TokenURL)
 		ls_script = "copy /y "+char(34)+is_CloudTemplateFile+char(34)+ " "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34) 
 		lb_rtn  = wf_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
 	END IF	
@@ -394,7 +393,7 @@ END IF
 //1 - Ejecutamos PbAutobuild 2022:
 
 
-ls_pbAutobuildPath = 	ProfileString(is_setupFile, "Setup", "PbAutobuildPath", "pbautobuild220.exe")
+ls_pbAutobuildPath = 	ProfileString(is_setupFile, "setup", "PbAutobuildPath", "pbautobuild220.exe")
 ls_script = ls_pbAutobuildPath +" /f "+char(34)+as_JsonPath+char(34)+" /l "+char(34)+gs_appdir+"/Log_PCBuild.log"+char(34)+ " /le "+char(34)+gs_appdir+"/Log_PCError.log"+char(34)
 
 wf_log("Start "+ls_pbAutobuildPath)
@@ -424,7 +423,7 @@ IF is_project_type = "PowerServer" THEN
 	wf_log("Stop Site NAme: "+is_SolutionName)
 	//2.2- Borrar la Carpera del sitio Web
 		
-	ls_PowerServerPath=ProfileString(is_setupFile, ls_JsonFile, "PowerServerPath", ProfileString(is_setupFile, "Setup", "PowerServerPath", ""))
+	ls_PowerServerPath=ProfileString(is_setupFile, ls_JsonFile, "PowerServerPath", ProfileString(is_setupFile, "setup", "PowerServerPath", ""))
 	
 	if right(ls_PowerServerPath, 1) <> "\" then  ls_PowerServerPath += "\" 
 	ls_script = "RMDIR /s /q "+char(34)+ls_PowerServerPath +lower(is_SolutionName)+char(34)
@@ -472,7 +471,7 @@ IF is_project_type = "PowerServer" THEN
 	//2.7 Reseteo archivo Panltilla CloudSetting.ini
 	SetProfileString ( is_CloudTemplateFile, "Users" , "UserName",  "")
 	SetProfileString ( is_CloudTemplateFile, "Users" , "UserPass",  "")
-	SetProfileString ( is_CloudTemplateFile, "Setup" , "TokenURL",  "")
+	SetProfileString ( is_CloudTemplateFile, "setup" , "TokenURL",  "")
 	
 END IF	
 
@@ -486,7 +485,7 @@ IF  is_project_type <> "PB Native" THEN
 ELSE
 	//3.2- Eliminar fuentes y dejar Programa Nativo Compilado en Directorio con nombre del proyecto.
 	
-	ls_PBNativePath=ProfileString(is_setupFile, ls_JsonFile, "PBNativePath", ProfileString(is_setupFile, "Setup", "PBNativePath", gs_appdir))
+	ls_PBNativePath=ProfileString(is_setupFile, ls_JsonFile, "PBNativePath", ProfileString(is_setupFile, "setup", "PBNativePath", gs_appdir))
 	if right(ls_PBNativePath, 1) <> "\" then  ls_PBNativePath += "\" 
 	
 	ls_script = "RD "+char(34)+gs_appdir+"\src\ws_objects\"+char(34)+" /S /Q" +"~r~n"
@@ -513,10 +512,9 @@ integer li_indx, li_rtn
 string ls_line, ls_data
 Blob lblb_file 
 u_json lu_jsonObject
-String ls_FileVersion
 Datetime ldt_AvailabeTime, ldt_ExpirationTime
 String ls_MinimumCompatibleVersion
-Integer li_ProductVersion1, li_FileVersion1,  li_ProductVersion2, li_FileVersion2,  li_ProductVersion3, li_FileVersion3,  li_ProductVersion4, li_FileVersion4
+Integer li_ProductVersion1,  li_ProductVersion2,  li_ProductVersion3,  li_ProductVersion4
 String ls_RuntimeVersion, ls_DeployVersion
 
 li_FileNum = FileOpen(as_filename, LineMode!, Read!, LockRead!)
@@ -583,7 +581,6 @@ ELSE
 	try
 		lu_jsonObject.of_load_string(ls_data)
 			
-		ls_FileVersion= lu_jsonObject.of_get_node(is_projectName).of_get_node("DeployVersion").of_get_value_string()
 		ls_MinimumCompatibleVersion=lu_jsonObject.of_get_node(is_projectName).of_get_node("MinimumValidVersion").of_get_value_string()
 		ldt_AvailabeTime =  lu_jsonObject.of_get_node(is_projectName).of_get_node("OnlineTime").of_get_value_datetime()
 		ldt_ExpirationTime =  lu_jsonObject.of_get_node(is_projectName).of_get_node("OfflineTime").of_get_value_datetime()
@@ -591,10 +588,6 @@ ELSE
 		li_ProductVersion2 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionMinor").of_get_value_number()
 		li_ProductVersion3 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionBuild").of_get_value_number()
 		li_ProductVersion4 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionRevision").of_get_value_number()
-		li_FileVersion1 =  lu_jsonObject.of_get_node(is_projectName ).of_get_node("FileVersionMajor").of_get_value_number()
-		li_FileVersion2 =  lu_jsonObject.of_get_node(is_projectName ).of_get_node("FileVersionMinor").of_get_value_number()
-		li_FileVersion3 =  lu_jsonObject.of_get_node(is_projectName ).of_get_node("FileVersionBuild").of_get_value_number()
-		li_FileVersion4 =  lu_jsonObject.of_get_node(is_projectName ).of_get_node("FileVersionRevision").of_get_value_number()
 		ls_DeployVersion =  lu_jsonObject.of_get_node(is_projectName ).of_get_node("DeployVersion").of_get_value_string()
 		ls_RuntimeVersion = lu_jsonObject.of_get_node(is_projectName).of_get_node("RuntimeVersion").of_get_value_string()
 		
@@ -632,17 +625,15 @@ END IF
 
 end function
 
-private function boolean wf_load_json (string as_jsonpath);String ls_DeploymentVersion, ls_ProductVersion, ls_FileVersion
-String ls_ProductVersion_ant, ls_FileVersion_ant,ls_DeploymentVersion_Ant
-Datetime ldt_AvailabeTime, ldt_ExpirationTime,  ldt_AvailabeTime_Ant, ldt_ExpirationTime_ant
+private function boolean wf_load_json (string as_jsonpath);String ls_DeploymentVersion
+Datetime ldt_AvailabeTime, ldt_ExpirationTime
 String ls_MinimumCompatibleVersion
-Integer li_ProductVersion1, li_FileVersion1,  li_ProductVersion2, li_FileVersion2,  li_ProductVersion3, li_FileVersion3,  li_ProductVersion4, li_FileVersion4
-String  ls_ProductVersion4, ls_FileVersion4
-Integer li_ProductVersion4_Ant, li_FileVersion4_ant
-String ls_string, ls_JsonFile
+Integer li_ProductVersion1,  li_ProductVersion2,  li_ProductVersion3,  li_ProductVersion4
+String ls_JsonFile
 Integer li_ProjectType 
 u_json lu_jsonObject
 Boolean lb_rtn
+String ls_auto, ls_control, ls_FilePathControl
 
 ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
 
@@ -655,39 +646,27 @@ try
 	is_projectName =  lu_jsonObject.of_get_node("Projects").of_get_node(1).of_get_key()
 	li_ProjectType = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("ProjectType").of_get_value_number()
 	IF li_ProjectType = 0 then
-		ls_ProductVersion_ant  = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("PropertiesDisplayedForExecutable").of_get_node("ProductVersion").of_get_value_string()
-		ls_FileVersion_ant = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("PropertiesDisplayedForExecutable").of_get_node("FileVersion").of_get_value_string()
 		
 		//Esto no sirve mas que para hacer bonito en la pantalla
-		ls_DeploymentVersion_ant =  string(lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(4).of_get_value_number())
+		ls_DeploymentVersion =  string(lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(4).of_get_value_number())
 		ls_MinimumCompatibleVersion=  string(lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(4).of_get_value_number())
-		ldt_AvailabeTime_ant =  datetime(today(), now())
-		ldt_ExpirationTime_ant= datetime(date("31-12-"+string(year(today()))), time("23:59"))
+		ldt_AvailabeTime =  datetime(today(), now())
+		ldt_ExpirationTime= datetime(date("31-12-"+string(year(today()))), time("23:59"))
 		//---------------------------------------------------------------------------------------------------------
 		
 		li_ProductVersion1 = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(1).of_get_value_number()
 		li_ProductVersion2 = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(2).of_get_value_number()
 		li_ProductVersion3 = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(3).of_get_value_number()
 		li_ProductVersion4 = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(4).of_get_value_number()
-		li_FileVersion1 =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(1).of_get_value_number()
-		li_FileVersion2 =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(2).of_get_value_number()
-		li_FileVersion3 =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(3).of_get_value_number()
-		li_FileVersion4 =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(4).of_get_value_number()
 	ELSE	
-		ls_ProductVersion_ant  = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("PropertiesDisplayedForExecutable").of_get_node("ProductVersion").of_get_value_string()
-		ls_FileVersion_ant = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("PropertiesDisplayedForExecutable").of_get_node("FileVersion").of_get_value_string()
-		ls_DeploymentVersion_ant =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("ClientDeployment").of_get_node("DeploymentVersion").of_get_value_string()
+		ls_DeploymentVersion =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("ClientDeployment").of_get_node("DeploymentVersion").of_get_value_string()
 		ls_MinimumCompatibleVersion=  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("ClientDeployment").of_get_node("MinimumCompatibleVersion").of_get_value_string()
-		ldt_AvailabeTime_ant = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("ClientDeployment").of_get_node("AvailabeTime").of_get_value_datetime()
-		ldt_ExpirationTime_ant= lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("ClientDeployment").of_get_node("ExpirationTime").of_get_value_datetime()
+		ldt_AvailabeTime = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("ClientDeployment").of_get_node("AvailabeTime").of_get_value_datetime()
+		ldt_ExpirationTime= lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("ClientDeployment").of_get_node("ExpirationTime").of_get_value_datetime()
 		li_ProductVersion1 = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(1).of_get_value_number()
 		li_ProductVersion2 = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(2).of_get_value_number()
 		li_ProductVersion3 = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(3).of_get_value_number()
 		li_ProductVersion4 = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("ProductVersion").of_get_node(4).of_get_value_number()
-		li_FileVersion1 =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(1).of_get_value_number()
-		li_FileVersion2 =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(2).of_get_value_number()
-		li_FileVersion3 =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(3).of_get_value_number()
-		li_FileVersion4 =  lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("General").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(4).of_get_value_number()
 	END IF
 	
 	if li_ProjectType = 2 then
@@ -702,26 +681,8 @@ catch (exception le_ex)
 	RETURN FALSE
 end try
 
-ls_ProductVersion4 = string(li_ProductVersion4)
-ls_FileVersion4 = string(li_FileVersion4)
-	
-
-ls_ProductVersion=string(li_ProductVersion1)+"."+string(li_ProductVersion2)+"."+string(li_ProductVersion3)+"."+ls_ProductVersion4
-ls_FileVersion=string(li_FileVersion1)+"."+string(li_FileVersion2)+"."+string(li_FileVersion3)+"."+ls_FileVersion4
-	
-if ls_ProductVersion <> ls_ProductVersion_ant or ls_FileVersion <> ls_FileVersion_ant or ls_ProductVersion <> ls_FileVersion then
-	wf_error("Error con Las Versiones."+char(13)+"ProductVersion Original: " + ls_ProductVersion_ant+char(13)+ "FileVersion Original: " + ls_FileVersion_ant+char(13)+&
-	"ProductVersion: " + ls_ProductVersion+char(13)+ "FileVersion: " + ls_FileVersion)
-end if	
-	
-//Actualizo Verisones
-li_ProductVersion4_ant =li_ProductVersion4
-li_FileVersion4_ant=li_FileVersion4
-
 //Para el PowerClient
-ldt_AvailabeTime = ldt_AvailabeTime_Ant
-ldt_ExpirationTime = ldt_ExpirationTime_ant
-ls_DeploymentVersion = string(dec(ls_DeploymentVersion_Ant))
+ls_DeploymentVersion = string(dec(ls_DeploymentVersion))
 
 sle_major.Text = string(li_ProductVersion1)
 sle_minor.Text = string(li_ProductVersion2)
@@ -761,9 +722,7 @@ gb_powerclient.text  = is_project_type
 
 destroy lu_jsonObject
 
-String ls_auto, ls_control, ls_FilePathControl
-
-ls_control = upper(ProfileString(is_SetupFile, ls_JsonFile, "version_control", ProfileString(is_SetupFile, "Setup", "version_control", "N")))
+ls_control = upper(ProfileString(is_SetupFile, ls_JsonFile, "version_control", ProfileString(is_SetupFile, "setup", "version_control", "N")))
 
 IF ls_control="S" THEN
 	ls_FilePathControl=  wf_download_version_control(as_JsonPath)
@@ -785,20 +744,20 @@ String ls_ProfileVisibility, ls_JsonFile
 
 ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
 
-ls_ProfileVisibility = ProfileString(is_SetupFile, ls_JsonFile, "ProfileVisibility", ProfileString(is_SetupFile, "Setup", "ProfileVisibility", "Public"))
+ls_ProfileVisibility = ProfileString(is_SetupFile, ls_JsonFile, "ProfileVisibility", ProfileString(is_SetupFile, "setup", "ProfileVisibility", "Public"))
 
-ls_GitHubProfileName = ProfileString(is_SetupFile, ls_JsonFile, "GitHubProfileName",  ProfileString(is_SetupFile, "Setup", "GitHubProfileName", ""))
+ls_GitHubProfileName = ProfileString(is_SetupFile, ls_JsonFile, "GitHubProfileName",  ProfileString(is_SetupFile, "setup", "GitHubProfileName", ""))
 
 IF lower(ls_ProfileVisibility) = "private" THEN
-	ls_PersonalToken = wf_DecodeBase64URL(ProfileString(is_SetupFile, ls_JsonFile, "PersonalToken", ProfileString(is_SetupFile, "Setup", "PersonalToken", "")))
+	ls_PersonalToken = wf_DecodeBase64URL(ProfileString(is_SetupFile, ls_JsonFile, "PersonalToken", ProfileString(is_SetupFile, "setup", "PersonalToken", "")))
 ELSE
 	ls_PersonalToken = ""
 END IF
 
-ls_GitHubRepository = ProfileString(is_SetupFile, ls_JsonFile, "GitHubRepository", ProfileString(is_SetupFile, "Setup", "GitHubRepository", ""))
-ls_GitBranch = ProfileString(is_SetupFile, ls_JsonFile, "GitBranch", ProfileString(is_SetupFile, "Setup", "GitBranch", "main"))
-ls_Pbl = ProfileString(is_SetupFile, ls_JsonFile, "Pbl" , ProfileString(is_SetupFile, "Setup", "Pbl" , ""))
-ls_filename = ProfileString(is_SetupFile, ls_JsonFile, "filename", ProfileString(is_SetupFile, "Setup", "filename", ""))
+ls_GitHubRepository = ProfileString(is_SetupFile, ls_JsonFile, "GitHubRepository", ProfileString(is_SetupFile, "setup", "GitHubRepository", ""))
+ls_GitBranch = ProfileString(is_SetupFile, ls_JsonFile, "GitBranch", ProfileString(is_SetupFile, "setup", "GitBranch", "main"))
+ls_Pbl = ProfileString(is_SetupFile, ls_JsonFile, "Pbl" , ProfileString(is_SetupFile, "setup", "Pbl" , ""))
+ls_filename = ProfileString(is_SetupFile, ls_JsonFile, "filename", ProfileString(is_SetupFile, "setup", "filename", ""))
 ls_filePath = wf_replaceall(as_jsonPath, ls_JsonFile, ls_filename)
 
 wf_log("Downloand Version Control from Git Repository: "+ls_GitHubRepository)
@@ -1312,7 +1271,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2022-12-29"), Time("15:58:34.000000"))
+datetime value = DateTime(Date("2023-01-11"), Time("11:59:35.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1335,7 +1294,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2022-12-29"), Time("15:58:34.000000"))
+datetime value = DateTime(Date("2023-01-11"), Time("11:59:35.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
