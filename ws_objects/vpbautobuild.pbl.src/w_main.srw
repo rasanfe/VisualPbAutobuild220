@@ -499,9 +499,6 @@ ELSE
 	ls_script += "DEL "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34)+" /S /Q /F" +"~r~n"
 	ls_script += "MOVE "+char(34)+gs_appdir+"\src"+char(34)+" "+char(34)+ls_PBNativePath+is_projectName+char(34)
 	
-	messagebox("delete_source.bat", ls_script)
-	clipboard(ls_script)
-	
 	lb_rtn  = wf_run_bat(ls_script, "delete_source.bat")
 	wf_log("Delete Source Code: "+gs_appdir+"\src")
 	wf_log("Compiled Path: "+gs_appdir+"\"+is_projectName)
@@ -1275,7 +1272,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-13"), Time("20:05:48.000000"))
+datetime value = DateTime(Date("2023-01-13"), Time("20:21:16.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1298,7 +1295,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-13"), Time("20:05:48.000000"))
+datetime value = DateTime(Date("2023-01-13"), Time("20:21:16.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
