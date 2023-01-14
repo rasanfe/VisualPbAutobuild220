@@ -465,7 +465,7 @@ IF is_project_type = "PowerServer" THEN
 END IF	
 
 //3- Eminiar Fuentes Descargadas
-IF  is_project_type <> "PB Native" THEN
+IF  is_project_type <> "PB Native" THEN 
 	//3.1   Eliminar Directorio Completo src en aplicaciones PowerClient/PowerServer Publicadas.
 	ls_script = "RMDIR /s /q "+char(34)+gs_appdir+"\src"+char(34)
 	
@@ -475,7 +475,10 @@ ELSE
 	//3.2- Eliminar fuentes y dejar Programa Nativo Compilado en Directorio con nombre del proyecto.
 	
 	ls_PBNativePath=ProfileString(is_setupFile, ls_JsonFile, "PBNativePath", ProfileString(is_setupFile, "setup", "PBNativePath", gs_appdir))
+	if trim(ls_PBNativePath)= "" then ls_PBNativePath = gs_appdir
 	if right(ls_PBNativePath, 1) <> "\" then  ls_PBNativePath += "\" 
+	
+	//messagebox("ls_PBNativePath" ,ls_PBNativePath)
 	
 	ls_script = "RD "+char(34)+gs_appdir+"\src\ws_objects\"+char(34)+" /S /Q" +"~r~n"
 	ls_script += "RD "+char(34)+gs_appdir+"\src\.git\"+char(34)+" /S /Q" +"~r~n"
@@ -487,10 +490,11 @@ ELSE
 	ls_script += "DEL "+char(34)+gs_appdir+"\src\*.json"+char(34)+" /S /Q /F" +"~r~n"
 	ls_script += "DEL "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34)+" /S /Q /F" +"~r~n"
 	ls_script += "MOVE "+char(34)+gs_appdir+"\src"+char(34)+" "+char(34)+ls_PBNativePath+is_projectName+char(34)
-	
+
 	lb_rtn  = wf_run_bat(ls_script, "delete_source.bat")
 	wf_log("Delete Source Code: "+gs_appdir+"\src")
 	wf_log("Compiled Path: "+gs_appdir+"\"+is_projectName)
+
 END IF
 SetPointer(Arrow!)
 wf_log("")
@@ -1244,7 +1248,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-14"), Time("11:56:10.000000"))
+datetime value = DateTime(Date("2023-01-14"), Time("12:35:51.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1267,7 +1271,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-14"), Time("11:56:10.000000"))
+datetime value = DateTime(Date("2023-01-14"), Time("12:35:51.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
