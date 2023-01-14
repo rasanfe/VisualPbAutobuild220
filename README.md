@@ -14,7 +14,7 @@ PbAutobuildPath = --> Parametro Opcional. Se puede incluir la ruta donde este Pb
 
 Ejemplo:
 
-PbAutobuildPath = C:\Program Files (x86)\Appeon\PowerBuilderUtilities 22.0\pbautobuild220.exe
+PbAutobuildPath = C:\Program Files (x86)\Appeon\PowerBuilderUtilities 22.0
 
 Para cada proyecto  (o json) hay que crear un apartado con los siguientes campos:
 Si los proyectos tienen cosas en comun y no quieres duplicar la info, en el apartado Setup puedes poner los que quieras que sean comunes para todos los proyectos.
