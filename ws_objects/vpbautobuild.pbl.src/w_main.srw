@@ -127,7 +127,6 @@ String is_projectName, is_project_type, is_authtemplate, is_solutionname, is_Run
 String is_AutoPath, is_DeploymentVersion
 n_runandwait in_rwait
 Constant String is_DeploymentPath="C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild"
-
 end variables
 
 forward prototypes
@@ -170,13 +169,6 @@ END IF
 FileDelete(ls_batFile)
 	
 SetPointer(Arrow!)
-
-
-
-
-
-
-
 end function
 
 private subroutine wf_version (statictext ast_version, statictext ast_patform);String ls_version, ls_platform, ls_path
@@ -208,9 +200,6 @@ if right(UPPER(ls_path), 7)="220.EXE" or right(UPPER(ls_path), 7)="X64.EXE" then
 end if
 
 gs_appdir=left(ls_path, len(ls_path) - (len("vpbautobuild.exe") + 1))
-
-
-
 end subroutine
 
 private subroutine wf_modify_class (string as_jsonfile, string as_classfilepath);integer li_FileNum, li_rtn
@@ -281,7 +270,6 @@ ls_MinimumCompatibleVersion = sle_minimum.Text
 
 ls_DeploymentVersion = ls_ProductVersion4
 
-
 ls_ProductVersion=ls_ProductVersion1+"."+ls_ProductVersion2+"."+ls_ProductVersion3+"."+ls_ProductVersion4
 ls_FileVersion = ls_ProductVersion
 
@@ -351,12 +339,12 @@ try
 
 catch (exception le_ex)
 	wf_error(le_ex.getmessage())
-	lb_return = false
+	lb_return = FALSE
 end try
 
 destroy lu_jsonObject
 
-return lb_return
+RETURN lb_return
 end function
 
 private subroutine wf_build (string as_jsonpath);Boolean lb_rtn
@@ -371,7 +359,7 @@ ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) -
 IF NOT wf_save_json(as_JsonPath) THEN
 	RETURN
 END IF	
-	
+
 //Crear Bat para copiar INI con credenciales API en Proyectos PowerServer
 IF is_project_type = "PowerServer" THEN
 	//Revisamos las plantillas de Segurdidad de la API.
@@ -391,10 +379,11 @@ IF is_project_type = "PowerServer" THEN
 END IF	
 
 //1 - Ejecutamos PbAutobuild 2022:
+ls_pbAutobuildPath = 	ProfileString(is_setupFile, "setup", "PbAutobuildPath", "")
+if trim(ls_pbAutobuildPath)<>"" and right(ls_pbAutobuildPath, 1) <> "\" then  ls_pbAutobuildPath += "\" 
+ls_pbAutobuildPath+="pbautobuild220.exe"
 
-
-ls_pbAutobuildPath = 	ProfileString(is_setupFile, "setup", "PbAutobuildPath", "pbautobuild220.exe")
-ls_script = ls_pbAutobuildPath +" /f "+char(34)+as_JsonPath+char(34)+" /l "+char(34)+gs_appdir+"/Log_PCBuild.log"+char(34)+ " /le "+char(34)+gs_appdir+"/Log_PCError.log"+char(34)
+ls_script = ls_pbAutobuildPath+" /f "+char(34)+as_JsonPath+char(34)+" /l "+char(34)+gs_appdir+"/Log_PCBuild.log"+char(34)+ " /le "+char(34)+gs_appdir+"/Log_PCError.log"+char(34)
 
 wf_log("Start "+ls_pbAutobuildPath)
 lb_rtn  = in_rwait.of_run(ls_script, Normal!)
@@ -505,7 +494,6 @@ ELSE
 END IF
 SetPointer(Arrow!)
 wf_log("")
-
 end subroutine
 
 private function boolean wf_load_version (string as_filename);Integer li_Filenum
@@ -595,10 +583,11 @@ ELSE
 	
 	catch (exception le_ex)
 		wf_error(le_ex.getmessage())
-		return false
+		RETURN FALSE
 	end try
 END IF
 
+//Actualizo los Datos de Pantalla con la Versión del archivo *.srj ya que de aqui se tomarán los valores para guardar el Json.
 sle_major.Text = string(li_ProductVersion1)
 sle_minor.Text = string(li_ProductVersion2)
 sle_build.Text = string(li_ProductVersion3)
@@ -621,12 +610,12 @@ ELSE
 	wf_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+" Nothing to update.")
 	RETURN FALSE
 END IF
-
-
-
 end function
 
-private function boolean wf_load_json (string as_jsonpath);String ls_DeploymentVersion
+private function boolean wf_load_json (string as_jsonpath);//La función sólo devuelve False si se ejecuta el programa de forma autómatica y está activado el Parametro version_control="S" en setup.ini
+// Y al descargar el archivo *.srj se comprubea que la versión no es superior.
+
+String ls_DeploymentVersion
 Datetime ldt_AvailabeTime, ldt_ExpirationTime
 String ls_MinimumCompatibleVersion
 Integer li_ProductVersion1,  li_ProductVersion2,  li_ProductVersion3,  li_ProductVersion4
@@ -700,22 +689,22 @@ is_DeploymentVersion = ls_DeploymentVersion
 choose case li_Projecttype
 	case 0
 		is_project_type = "PB Native"
-		gb_powerclient.enabled=false
-		dp_availale.enabled=false
-		dp_expiration.enabled=false
-		sle_minimum.enabled=false
+		gb_powerclient.enabled=FALSE
+		dp_availale.enabled=FALSE
+		dp_expiration.enabled=FALSE
+		sle_minimum.enabled=FALSE
 	case 1
 		is_project_type= "PowerClient"
-		gb_powerclient.enabled=true
-		dp_availale.enabled=true
-		dp_expiration.enabled=true
-		sle_minimum.enabled=true
+		gb_powerclient.enabled=TRUE
+		dp_availale.enabled=TRUE
+		dp_expiration.enabled=TRUE
+		sle_minimum.enabled=TRUE
 	case 2
 		is_project_type = "PowerServer"
-		gb_powerclient.enabled=true
-		dp_availale.enabled=true
-		dp_expiration.enabled=true
-		sle_minimum.enabled=true
+		gb_powerclient.enabled=TRUE
+		dp_availale.enabled=TRUE
+		dp_expiration.enabled=TRUE
+		sle_minimum.enabled=TRUE
 end choose		
 
 sle_project_type.text  = is_project_type
@@ -728,13 +717,12 @@ ls_control = upper(ProfileString(is_SetupFile, ls_JsonFile, "version_control", P
 IF ls_control="S" THEN
 	ls_FilePathControl=  wf_download_version_control(as_JsonPath)
 	if ls_FilePathControl <> "" then lb_rtn = wf_load_version(ls_FilePathControl)
-	FileDelete(ls_FilePathControl)
+	//FileDelete(ls_FilePathControl)
 ELSE
 	lb_rtn =TRUE
 END IF	
 
 RETURN lb_rtn
-
 end function
 
 private function string wf_download_version_control (string as_jsonpath);Integer li_rc, li_ResponseStatusCode, li_FileNum
@@ -776,7 +764,7 @@ li_ResponseStatusCode = lnv_HttpClient.GetResponseStatusCode()
 
 // Receive large data
 if li_rc = 1 and li_ResponseStatusCode = 200 then
-	do while true
+	do while TRUE
 	li_rc = lnv_HttpClient.ReadData(lblb_NextData, 1000)
 	if li_rc = 0 then exit // Finish receiving data
 	if li_rc = -1 then exit // Error occurred
@@ -784,12 +772,12 @@ if li_rc = 1 and li_ResponseStatusCode = 200 then
 	loop
 else
 	wf_error("HttpClient Result Code: "+string(li_rc )+"~r~n"+"HttpClient Response Status Code: "+string(li_ResponseStatusCode))
-	return ""
+	RETURN ""
 end if
 
 if li_rc <> 0 then
 	wf_error("HttpClient Result Code: "+string(li_rc ))
-	return ""
+	RETURN ""
 end if
 
 //Write File blob to disk
@@ -799,10 +787,10 @@ FileClose(li_FileNum)
 
 if li_rc = -1 then
 	wf_error( "Error Writting "+ls_filePath)
-	return ""
+	RETURN ""
 end if
 
-return ls_filePath
+RETURN ls_filePath
 end function
 
 private function boolean wf_create_bat (string as_script, string as_filepath);Integer li_file
@@ -814,20 +802,15 @@ as_script = "@Echo off" +"~r~n"+ as_script
 if li_file > 0 then
 	if filewriteex(li_file, as_script) < 0 then
 		wf_error("Error writing File")
-		return false
+		RETURN FALSE
 	end if
 	fileclose(li_file)
 else
 	wf_error("Error opening the file to write")
-	return false
+	RETURN FALSE
 end if
 
-return true
-
-
-
-
-
+RETURN TRUE
 end function
 
 private subroutine wf_copy_pbautobuild_logs (string as_pbautobuillog, string as_mylog);Integer li_myFile, li_PCfile, li_indx, li_rtn
@@ -838,12 +821,12 @@ li_myFile= FileOpen(as_mylog, StreamMode!, Write!)
 
 if li_PCfile = -1 then
 	wf_error("Error abriendo "+as_pbautobuillog)
-	return
+	RETURN
 end if	
 
 if li_myFile = -1 then
 	wf_error("Error abriendo "+as_mylog)
-	return
+	RETURN
 end if	
 
 li_indx = 0  
@@ -852,7 +835,7 @@ li_rtn = FileReadex(li_PCfile, lb_data)
 
 IF li_rtn = -1 then
 	wf_error("Escribiendo Copiando Log"+as_pbautobuillog+" a "+as_mylog)
-	return
+	RETURN
 end if	
 
 FileWriteex(li_myFile, lb_data)
@@ -907,9 +890,7 @@ li_file = FileOpen(gs_appdir +"\Log_Build.log", LineMode!, Write!, Shared!, Appe
 
 FileWrite(li_file, string(now(), "hh:mm:ss")+" [Normal] "+ as_text)
 FileClose(li_file)
-
 RETURN
-
 end subroutine
 
 private subroutine wf_error (string as_text);Integer li_file
@@ -926,7 +907,6 @@ li_file = FileOpen(gs_appdir +"\Log_Error.log", LineMode!, Write!, Shared!, Appe
 
 FileWrite(li_file, string(now(), "hh:mm:ss")+" [Error] "+ as_text)
 FileClose(li_file)
-
 end subroutine
 
 on w_main.create
@@ -1041,8 +1021,6 @@ is_CloudTemplateFile=gs_appdir+"\"+"CloudSetting.ini"
 is_JWTClassTemplateName = "DefaultUserStore.cs"
 is_SetupFile=gs_appdir+"\"+"setup.ini"
 
-ls_JsonPath=ProfileString(is_SetupFile, "setup", "json", "")
-
 
  // Cargo todos los Json que hay en el direcciorio de la App
 lb_json.Reset()
@@ -1050,7 +1028,7 @@ lb_json.DirList(is_AutoPath+"*.json", 0 )
 ll_TotalItems = lb_json.TotalItems()
 
 IF ll_TotalItems > 0 THEN 
-	gb_auto=TRUE
+	gb_auto=TRUE  //Si tenemos json en la carpeta auto el programa funcionará de forma automática.
 	lb_json.visible=TRUE
 	sle_json.visible=FALSE
 	pb_abrir_json.visible=FALSE
@@ -1058,27 +1036,21 @@ IF ll_TotalItems > 0 THEN
 	pb_exit.x = pb_exit.x  - 288
 	Timer(1)
 ELSE
-	gb_auto= FALSE
+	gb_auto= FALSE //Si no hay archivos en la Carpeta auto intentará abrir el ultimo json que se abrio y funcionará de forma manual.
 	lb_json.visible= FALSE
 	sle_json.visible= TRUE
-	
+	ls_JsonPath=ProfileString(is_SetupFile, "setup", "json", "")
 	sle_json.text = ls_JsonPath
 	if trim(ls_JsonPath) <> "" then
 		wf_load_json(ls_JsonPath)
 	end if	
 END IF	
-
-
 end event
 
 event closequery;String ls_auto, ls_JsonPath
 
 ls_JsonPath = sle_json.text
 SetProfileString(is_SetupFile, "setup", "json", ls_JsonPath)
-
-
-
-
 end event
 
 event timer;Timer(0)
@@ -1272,7 +1244,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-13"), Time("20:21:16.000000"))
+datetime value = DateTime(Date("2023-01-14"), Time("10:31:05.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1295,7 +1267,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-13"), Time("20:21:16.000000"))
+datetime value = DateTime(Date("2023-01-14"), Time("10:31:05.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1457,6 +1429,7 @@ event clicked;String ls_JsonPath, ls_JsonFile
 Long ll_Items, ll_TotalItems
 
 wf_log(fill("*", 19)+" Build Date: "+string(today(), "dd-mm-yy")+" "+fill("*", 19))
+
 IF gb_auto = FALSE THEN 
 	ls_JsonPath = sle_json.text
 	wf_build(ls_JsonPath)	
@@ -1475,10 +1448,6 @@ ELSE
 	NEXT
 END IF	
 wf_log(fill("*", 60))
-
-
-
-
 end event
 
 type st_myversion from statictext within w_main
@@ -1574,8 +1543,8 @@ ChangeDirectory (gs_appdir)
  
 sle_json.text=ls_JsonPath
 
+//Cargamos los dartos de Json
  wf_load_json(ls_JsonPath)
-
 end event
 
 type gb_product_version from groupbox within w_main
@@ -1643,7 +1612,6 @@ long backcolor = 33521664
 end type
 
 event clicked;close(parent)
-
 end event
 
 type lb_json from listbox within w_main
