@@ -475,7 +475,7 @@ ELSE
 	//3.2- Eliminar fuentes y dejar Programa Nativo Compilado en Directorio con nombre del proyecto.
 	
 	ls_PBNativePath=ProfileString(is_setupFile, ls_JsonFile, "PBNativePath", ProfileString(is_setupFile, "setup", "PBNativePath", gs_appdir))
-	if trim(ls_PBNativePath)<>"" and right(ls_PBNativePath, 1) <> "\" then  ls_PBNativePath += "\" 
+	if right(ls_PBNativePath, 1) <> "\" then  ls_PBNativePath += "\" 
 	
 	ls_script = "RD "+char(34)+gs_appdir+"\src\ws_objects\"+char(34)+" /S /Q" +"~r~n"
 	ls_script += "RD "+char(34)+gs_appdir+"\src\.git\"+char(34)+" /S /Q" +"~r~n"
@@ -717,7 +717,7 @@ ls_control = upper(ProfileString(is_SetupFile, ls_JsonFile, "version_control", P
 IF ls_control="S" THEN
 	ls_FilePathControl=  wf_download_version_control(as_JsonPath)
 	if ls_FilePathControl <> "" then lb_rtn = wf_load_version(ls_FilePathControl)
-	//FileDelete(ls_FilePathControl)
+	FileDelete(ls_FilePathControl)
 ELSE
 	lb_rtn =TRUE
 END IF	
@@ -1244,7 +1244,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-14"), Time("10:31:05.000000"))
+datetime value = DateTime(Date("2023-01-14"), Time("11:56:10.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1267,7 +1267,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-14"), Time("10:31:05.000000"))
+datetime value = DateTime(Date("2023-01-14"), Time("11:56:10.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
