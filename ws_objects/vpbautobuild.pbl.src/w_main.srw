@@ -129,6 +129,7 @@ n_cst_functions in_fn
 n_runandwait in_rwait
 Constant String is_DeploymentPath="C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild"
 end variables
+
 forward prototypes
 private subroutine wf_version (statictext ast_version, statictext ast_patform)
 private subroutine wf_modify_class (string as_jsonfile, string as_classfilepath)
@@ -378,7 +379,7 @@ IF is_project_type = "PowerServer" THEN
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
-	in_fn.of_log("Stop Site NAme: "+is_SolutionName)
+	in_fn.of_log("Stop Site Name: "+is_SolutionName)
 	//2.2- Borrar la Carpera del sitio Web
 		
 	ls_PowerServerPath=ProfileString(is_setupFile, ls_JsonFile, "PowerServerPath", ProfileString(is_setupFile, "setup", "PowerServerPath", ""))
