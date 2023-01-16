@@ -125,12 +125,11 @@ Private:
 String is_SetupFile, is_CloudTemplateFile, is_JWTClassTemplateName 
 String is_projectName, is_project_type, is_authtemplate, is_solutionname, is_RuntimeVersion, is_WebAPIURL
 String is_AutoPath, is_DeploymentVersion
+n_cst_functions in_fn
 n_runandwait in_rwait
 Constant String is_DeploymentPath="C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild"
 end variables
-
 forward prototypes
-private function boolean wf_run_bat (string as_script, string as_filename)
 private subroutine wf_version (statictext ast_version, statictext ast_patform)
 private subroutine wf_modify_class (string as_jsonfile, string as_classfilepath)
 private function boolean wf_save_json (string as_jsonpath)
@@ -138,38 +137,7 @@ private subroutine wf_build (string as_jsonpath)
 private function boolean wf_load_version (string as_filename)
 private function boolean wf_load_json (string as_jsonpath)
 private function string wf_download_version_control (string as_jsonpath)
-private function boolean wf_create_bat (string as_script, string as_filepath)
-private subroutine wf_copy_pbautobuild_logs (string as_pbautobuillog, string as_mylog)
-private function string wf_replaceall (string as_source, string as_replaced, string as_new)
-private function string wf_decodebase64url (string as_value)
-private subroutine wf_log (string as_text)
-private subroutine wf_error (string as_text)
 end prototypes
-
-private function boolean wf_run_bat (string as_script, string as_filename);Boolean lb_rtn
-String ls_error
-String ls_batFile
-
-SetPointer(HourGlass!)
-
-ls_batFile = gs_appdir+"\"+as_filename
-
-lb_rtn  = wf_create_bat(as_script, ls_batFile)
-
-IF lb_rtn = FALSE THEN	RETURN FALSE
-
-lb_rtn  = in_rwait.of_runandcapture(ls_batFile, ls_error)
-
-// check return code
-IF lb_rtn = FALSE THEN
-	wf_error( ls_error)
-	RETURN lb_rtn
-END IF
-
-FileDelete(ls_batFile)
-	
-SetPointer(Arrow!)
-end function
 
 private subroutine wf_version (statictext ast_version, statictext ast_patform);String ls_version, ls_platform, ls_path
 environment env
@@ -217,7 +185,7 @@ ls_Emp_Input= String(lbl_data, EncodingANSI!)
 SetNull(lbl_data)
 
 ls_UserName = ProfileString(is_SetupFile, as_JsonFile, "UserName", ProfileString(is_SetupFile, "setup", "UserName", ""))
-ls_UserPass =  wf_DecodeBase64Url(ProfileString(is_SetupFile, as_JsonFile, "UserPass", ProfileString(is_SetupFile, "setup", "UserPass", "")))
+ls_UserPass =  in_fn.of_decodebase64url(ProfileString(is_SetupFile, as_JsonFile, "UserPass", ProfileString(is_SetupFile, "setup", "UserPass", "")))
 
 //La información del Claim se puede guardar en general para todos los proyectos o especificar indiviualmente.
 ls_Scope = ProfileString(is_SetupFile, as_JsonFile, "Scope", ProfileString(is_SetupFile, "setup", "Scope", ""))
@@ -228,15 +196,15 @@ ls_WebSite =  ProfileString(is_SetupFile, as_JsonFile, "WebSite", ProfileString(
 ls_Email  =  ProfileString(is_SetupFile, as_JsonFile, "Email", ProfileString(is_SetupFile, "setup", "Email", ""))
 ls_EmailVerified =  ProfileString(is_SetupFile, as_JsonFile, "EmailVerified", ProfileString(is_SetupFile, "setup", "EmailVerified", ""))
 
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"UserName"+char(34), char(34)+ls_UserName+char(34))
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"UserPass"+char(34), char(34)+ls_UserPass+char(34))
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"Scope"+char(34), char(34)+ls_Scope+char(34))
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"Name"+char(34), char(34)+ls_Name+char(34))
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"GivenName"+char(34), char(34)+ls_GivenName+char(34))
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"FamilyName"+char(34), char(34)+ls_FamilyName+char(34))
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"WebSite"+char(34), char(34)+ls_WebSite+char(34))
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"Email"+char(34), char(34)+ls_Email+char(34))
-ls_Emp_Input = wf_replaceall(ls_Emp_Input, char(34)+"EmailVerified"+char(34), char(34)+ls_EmailVerified+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"UserName"+char(34), char(34)+ls_UserName+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"UserPass"+char(34), char(34)+ls_UserPass+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"Scope"+char(34), char(34)+ls_Scope+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"Name"+char(34), char(34)+ls_Name+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"GivenName"+char(34), char(34)+ls_GivenName+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"FamilyName"+char(34), char(34)+ls_FamilyName+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"WebSite"+char(34), char(34)+ls_WebSite+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"Email"+char(34), char(34)+ls_Email+char(34))
+ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"EmailVerified"+char(34), char(34)+ls_EmailVerified+char(34))
 
 FileDelete(as_ClassFilePath)
 
@@ -282,7 +250,7 @@ try
 	//Obtengo el Directorio y el Target
 	ls_target = lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("Merging").of_get_node(1).of_get_node("Target").of_get_value_string()
 	ls_dir = 	lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("Merging").of_get_node(1).of_get_node("LocalProjectPath").of_get_value_string()
-	ls_target = wf_replaceall(ls_target, ls_dir+"\", "")
+	ls_target = in_fn.of_replaceall(ls_target, ls_dir+"\", "")
 	
 	//MOdificamos las rutas
 	ls_dir = gs_appdir+"\src"
@@ -334,11 +302,11 @@ try
 	IF FileDelete(as_JsonPath) THEN	
 		lu_jsonObject.of_save_to_file(as_JsonPath)
 	ELSE
-		wf_error("File locked by another process")
+		in_fn.of_error("File locked by another process")
 	END IF	
 
 catch (exception le_ex)
-	wf_error(le_ex.getmessage())
+	in_fn.of_error(le_ex.getmessage())
 	lb_return = FALSE
 end try
 
@@ -364,7 +332,7 @@ END IF
 IF is_project_type = "PowerServer" THEN
 	//Revisamos las plantillas de Segurdidad de la API.
 	IF is_AuthTemplate <>"Default" and is_AuthTemplate<> "IncludeCustomJWTServer" THEN
-		wf_error("Plantilla de Seguridad Powerserver "+is_AuthTemplate+" no Implementada !" )
+		in_fn.of_error("Plantilla de Seguridad Powerserver "+is_AuthTemplate+" no Implementada !" )
 		RETURN
 	END IF	
 	//Crear Bat para copiar ini de configuración de PowerServer no Publicado en Repositorio	
@@ -374,7 +342,7 @@ IF is_project_type = "PowerServer" THEN
 		ls_TokenURL = is_WebAPIURL +"/connect/token"
 		SetProfileString ( is_CloudTemplateFile, "setup" , "TokenURL",  ls_TokenURL)
 		ls_script = "copy /y "+char(34)+is_CloudTemplateFile+char(34)+ " "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34) 
-		lb_rtn  = wf_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
+		lb_rtn  = in_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
 	END IF	
 END IF	
 
@@ -383,21 +351,22 @@ ls_pbAutobuildPath = 	ProfileString(is_setupFile, "setup", "PbAutobuildPath", ""
 if trim(ls_pbAutobuildPath)<>"" and right(ls_pbAutobuildPath, 1) <> "\" then  ls_pbAutobuildPath += "\" 
 ls_pbAutobuildPath+="pbautobuild220.exe"
 
-ls_script = ls_pbAutobuildPath+" /f "+char(34)+as_JsonPath+char(34)+" /l "+char(34)+gs_appdir+"/Log_PCBuild.log"+char(34)+ " /le "+char(34)+gs_appdir+"/Log_PCError.log"+char(34)
+ls_script = char(34)+ls_pbAutobuildPath+char(34)+" /f "+char(34)+as_JsonPath+char(34)+" /l "+char(34)+gs_appdir+"\Log_PCBuild.log"+char(34)+ " /le "+char(34)+gs_appdir+"\Log_PCError.log"+char(34)
 
-wf_log("Start "+ls_pbAutobuildPath)
+in_fn.of_log("Start "+ls_pbAutobuildPath)
 lb_rtn  = in_rwait.of_run(ls_script, Normal!)
+//lb_rtn  =  in_fn.of_run_bat(ls_script, "build.bat")
 
 // check return code
 IF lb_rtn = FALSE THEN
-	wf_error( "¡ Pbautobuild220 Error !")
+	in_fn.of_error( "¡ Pbautobuild220 Error !")
 	 RETURN
 END IF
 
 //Copy Pb Autobuild Logs to my log
-wf_copy_pbautobuild_logs(gs_appdir+"\Log_PCBuild.log", gs_appdir +"\Log_Build.log")
-wf_copy_pbautobuild_logs(gs_appdir+"\Log_PCError.log", gs_appdir +"\Log_Error.log")
-wf_log("End "+ls_pbAutobuildPath)
+in_fn.of_copy_pbautobuild_logs(gs_appdir+"\Log_PCBuild.log", gs_appdir +"\Log_Build.log")
+in_fn.of_copy_pbautobuild_logs(gs_appdir+"\Log_PCError.log", gs_appdir +"\Log_Error.log")
+in_fn.of_log("End "+ls_pbAutobuildPath)
 
 //2 -Revisamos Opciones en Proyectos PowerServer
 IF is_project_type = "PowerServer" THEN
@@ -405,11 +374,11 @@ IF is_project_type = "PowerServer" THEN
 	//2.1- Detener el Servicio de la Api
 	ls_script = "%windir%\system32\inetsrv\appcmd stop site /site.name:"+is_SolutionName
 	
-	lb_rtn  = wf_run_bat(ls_script, "start_api.bat")
+	lb_rtn  = in_fn.of_run_bat(ls_script, "start_api.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
-	wf_log("Stop Site NAme: "+is_SolutionName)
+	in_fn.of_log("Stop Site NAme: "+is_SolutionName)
 	//2.2- Borrar la Carpera del sitio Web
 		
 	ls_PowerServerPath=ProfileString(is_setupFile, ls_JsonFile, "PowerServerPath", ProfileString(is_setupFile, "setup", "PowerServerPath", ""))
@@ -417,38 +386,38 @@ IF is_project_type = "PowerServer" THEN
 	if right(ls_PowerServerPath, 1) <> "\" then  ls_PowerServerPath += "\" 
 	ls_script = "RMDIR /s /q "+char(34)+ls_PowerServerPath +lower(is_SolutionName)+char(34)
 	
-	lb_rtn  = wf_run_bat(ls_script, "delete_repos.bat")
+	lb_rtn  = in_fn.of_run_bat(ls_script, "delete_repos.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
-	wf_log("Delete Site Path: "+ls_PowerServerPath +lower(is_SolutionName))
+	in_fn.of_log("Delete Site Path: "+ls_PowerServerPath +lower(is_SolutionName))
 	
 	//2.3- Copiar Archivo DefaultUserStore.cs
 	IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
 		
 		ls_script = "copy /y "+char(34)+gs_appdir+"\"+is_JWTClassTemplateName+char(34)+ " "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName+char(34) 
 				
-		lb_rtn  = wf_run_bat(ls_script, "copy_class.bat")
+		lb_rtn  = in_fn.of_run_bat(ls_script, "copy_class.bat")
 	
 		IF lb_rtn = FALSE THEN	RETURN
 		
 		//Inyecto las credenciales de Archivo Ini de la app y la info de los Claims de mi archivo Setup.ini
 		ls_JWTClassPath = gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName
 		wf_modify_class(ls_JsonFile, ls_JWTClassPath)
-		wf_log("Add JWT Class Template: "+is_JWTClassTemplateName)
+		in_fn.of_log("Add JWT Class Template: "+is_JWTClassTemplateName)
 	END IF
 	//2.4- Publicar Sitio Web
 	ls_script = "dotnet.exe publish "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\ServerAPIs.csproj"+char(34)+" -c release -o "+ls_PowerServerPath+lower(is_SolutionName)
 	
-	lb_rtn  = wf_run_bat(ls_script, "publish_api.bat")
+	lb_rtn  = in_fn.of_run_bat(ls_script, "publish_api.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
-	wf_log("Publish Site Name: "+is_SolutionName)
+	in_fn.of_log("Publish Site Name: "+is_SolutionName)
 	//2.5- Reactivar el Servicio de la Api
 	ls_script = "%windir%\system32\inetsrv\appcmd start site /site.name:"+is_SolutionName
 	
-	lb_rtn  = wf_run_bat(ls_script, "start_api.bat")
+	lb_rtn  = in_fn.of_run_bat(ls_script, "start_api.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
@@ -469,8 +438,8 @@ IF  is_project_type <> "PB Native" THEN
 	//3.1   Eliminar Directorio Completo src en aplicaciones PowerClient/PowerServer Publicadas.
 	ls_script = "RMDIR /s /q "+char(34)+gs_appdir+"\src"+char(34)
 	
-	lb_rtn  = wf_run_bat(ls_script, "delete_source.bat")
-	wf_log("Delete Source Code: "+gs_appdir+"\src")
+	lb_rtn  = in_fn.of_run_bat(ls_script, "delete_source.bat")
+	in_fn.of_log("Delete Source Code: "+gs_appdir+"\src")
 ELSE
 	//3.2- Eliminar fuentes y dejar Programa Nativo Compilado en Directorio con nombre del proyecto.
 	
@@ -478,8 +447,12 @@ ELSE
 	if trim(ls_PBNativePath)= "" then ls_PBNativePath = gs_appdir
 	if right(ls_PBNativePath, 1) <> "\" then  ls_PBNativePath += "\" 
 	
-	//messagebox("ls_PBNativePath" ,ls_PBNativePath)
+	ls_script = "RMDIR /s /q "+char(34)+ls_PBNativePath +is_projectName+char(34)
 	
+	lb_rtn  = in_fn.of_run_bat(ls_script, "delete_nativepath.bat")
+
+	IF lb_rtn = FALSE THEN	RETURN
+
 	ls_script = "RD "+char(34)+gs_appdir+"\src\ws_objects\"+char(34)+" /S /Q" +"~r~n"
 	ls_script += "RD "+char(34)+gs_appdir+"\src\.git\"+char(34)+" /S /Q" +"~r~n"
 	ls_script += "DEL "+char(34)+gs_appdir+"\src\*.pbl"+char(34)+" /S /Q /F" +"~r~n"
@@ -490,13 +463,13 @@ ELSE
 	ls_script += "DEL "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34)+" /S /Q /F" +"~r~n"
 	ls_script += "MOVE "+char(34)+gs_appdir+"\src"+char(34)+" "+char(34)+ls_PBNativePath+is_projectName+char(34)
 
-	lb_rtn  = wf_run_bat(ls_script, "delete_source.bat")
-	wf_log("Delete Source Code: "+gs_appdir+"\src")
-	wf_log("Compiled Path: "+gs_appdir+"\"+is_projectName)
+	lb_rtn  = in_fn.of_run_bat(ls_script, "delete_source.bat")
+	in_fn.of_log("Delete Source Code: "+gs_appdir+"\src")
+	in_fn.of_log("Compiled Path: "+gs_appdir+"\"+is_projectName)
 
 END IF
 SetPointer(Arrow!)
-wf_log("")
+in_fn.of_log("")
 end subroutine
 
 private function boolean wf_load_version (string as_filename);Integer li_Filenum
@@ -516,7 +489,7 @@ IF is_project_type="PB Native" THEN
 	do while li_indx > -1
 		li_rtn = FileReadex(li_FileNum, ls_line)  
 		IF  li_rtn  = -1 THEN
-			wf_error("FileRead Error")
+			in_fn.of_error("FileRead Error")
 			EXIT
 		ELSE
 			li_indx ++  
@@ -534,15 +507,15 @@ IF is_project_type="PB Native" THEN
 	
 	li_ProductVersion1 = integer( mid(ls_line, pos(ls_line, ":") + 1, pos(ls_line, ",") - pos(ls_line, ":")  - 1) )
 	
-	ls_line = wf_replaceall(ls_line, "PVN:"+string(li_ProductVersion1)+",", "")
+	ls_line = in_fn.of_replaceall(ls_line, "PVN:"+string(li_ProductVersion1)+",", "")
 	
 	li_ProductVersion2 =  integer(left(ls_line, pos(ls_line, ",") - 1)) 
 	
-	ls_line = wf_replaceall(ls_line, string(li_ProductVersion2)+",", "")
+	ls_line = in_fn.of_replaceall(ls_line, string(li_ProductVersion2)+",", "")
 	
 	li_ProductVersion3 = integer( left(ls_line, pos(ls_line, ",") - 1))
 	
-	ls_line = wf_replaceall(ls_line, string(li_ProductVersion3)+",", "")
+	ls_line = in_fn.of_replaceall(ls_line, string(li_ProductVersion3)+",", "")
 	
 	li_ProductVersion4 = integer(ls_line)
 	ls_DeployVersion = ls_line
@@ -556,12 +529,12 @@ ELSE
 	do while li_indx > -1
 		li_rtn = FileReadex(li_FileNum, ls_line)  
 		IF  li_rtn  = -1 THEN
-			wf_error("FileRead Error")
+			in_fn.of_error("FileRead Error")
 			EXIT
 		ELSE
 			li_indx ++  
 			IF left(ls_line, 12)<>"POWERCLIENT:" THEN CONTINUE
-			IF left(ls_line, 12)="POWERCLIENT:" THEN ls_data = wf_replaceall(ls_line, "POWERCLIENT:", "")
+			IF left(ls_line, 12)="POWERCLIENT:" THEN ls_data = in_fn.of_replaceall(ls_line, "POWERCLIENT:", "")
 			IF left(ls_line, 4)="PBD:" THEN EXIT
 		END IF	
 	loop  
@@ -585,7 +558,7 @@ ELSE
 		
 	
 	catch (exception le_ex)
-		wf_error(le_ex.getmessage())
+		in_fn.of_error(le_ex.getmessage())
 		RETURN FALSE
 	end try
 END IF
@@ -600,17 +573,17 @@ dp_availale.value = ldt_AvailabeTime
 dp_expiration.value = ldt_ExpirationTime 
 		
 IF ls_RuntimeVersion <> is_RunTimeVersion THEN
-	wf_error("Git RunTime Version: "+ls_RuntimeVersion+ " inconsistent with Json RunTime Version: "+is_RuntimeVersion )
+	in_fn.of_error("Git RunTime Version: "+ls_RuntimeVersion+ " inconsistent with Json RunTime Version: "+is_RuntimeVersion )
 	//Lo actualizo para intentar continuar así:
 	is_RuntimeVersion = ls_RuntimeVersion
 END IF	
 
 //Si la versión es Mayor Retorno TRUE para que haga la compilación si no Retorno False para que no la haga.
 IF dec(ls_DeployVersion) > dec(is_DeploymentVersion) THEN
-	wf_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+ " Start the update...")
+	in_fn.of_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+ " Start the update...")
 	RETURN TRUE
 ELSE
-	wf_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+" Nothing to update.")
+	in_fn.of_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+" Nothing to update.")
 	RETURN FALSE
 END IF
 end function
@@ -630,7 +603,7 @@ String ls_auto, ls_control, ls_FilePathControl
 
 ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
 
-wf_log("Load Json: "+ls_JsonFile)
+in_fn.of_log("Load Json: "+ls_JsonFile)
 lu_jsonObject = create u_json
 try
 	lu_jsonObject.of_load_file(as_JsonPath)
@@ -670,7 +643,7 @@ try
 		is_SolutionName =  ""
 	end if	
 catch (exception le_ex)
-	wf_error(le_ex.getmessage())
+	in_fn.of_error(le_ex.getmessage())
 	RETURN FALSE
 end try
 
@@ -741,7 +714,7 @@ ls_ProfileVisibility = ProfileString(is_SetupFile, ls_JsonFile, "ProfileVisibili
 ls_GitHubProfileName = ProfileString(is_SetupFile, ls_JsonFile, "GitHubProfileName",  ProfileString(is_SetupFile, "setup", "GitHubProfileName", ""))
 
 IF lower(ls_ProfileVisibility) = "private" THEN
-	ls_PersonalToken = wf_DecodeBase64URL(ProfileString(is_SetupFile, ls_JsonFile, "PersonalToken", ProfileString(is_SetupFile, "setup", "PersonalToken", "")))
+	ls_PersonalToken = in_fn.of_decodebase64url(ProfileString(is_SetupFile, ls_JsonFile, "PersonalToken", ProfileString(is_SetupFile, "setup", "PersonalToken", "")))
 ELSE
 	ls_PersonalToken = ""
 END IF
@@ -750,10 +723,10 @@ ls_GitHubRepository = ProfileString(is_SetupFile, ls_JsonFile, "GitHubRepository
 ls_GitBranch = ProfileString(is_SetupFile, ls_JsonFile, "GitBranch", ProfileString(is_SetupFile, "setup", "GitBranch", "main"))
 ls_Pbl = ProfileString(is_SetupFile, ls_JsonFile, "Pbl" , ProfileString(is_SetupFile, "setup", "Pbl" , ""))
 ls_filename = ProfileString(is_SetupFile, ls_JsonFile, "filename", ProfileString(is_SetupFile, "setup", "filename", ""))
-ls_filePath = wf_replaceall(as_jsonPath, ls_JsonFile, ls_filename)
+ls_filePath = in_fn.of_replaceall(as_jsonPath, ls_JsonFile, ls_filename)
 
-wf_log("Downloand Version Control from Git Repository: "+ls_GitHubRepository)
-wf_log("Branch: "+ls_GitBranch +" PbLibrary: "+ls_Pbl+ " Project: "+ls_filename)
+in_fn.of_log("Downloand Version Control from Git Repository: "+ls_GitHubRepository)
+in_fn.of_log("Branch: "+ls_GitBranch +" PbLibrary: "+ls_Pbl+ " Project: "+ls_filename)
 
 lnv_HttpClient = Create HttpClient
 
@@ -774,12 +747,12 @@ if li_rc = 1 and li_ResponseStatusCode = 200 then
 	lblb_file += lblb_NextData
 	loop
 else
-	wf_error("HttpClient Result Code: "+string(li_rc )+"~r~n"+"HttpClient Response Status Code: "+string(li_ResponseStatusCode))
+	in_fn.of_error("HttpClient Result Code: "+string(li_rc )+"~r~n"+"HttpClient Response Status Code: "+string(li_ResponseStatusCode))
 	RETURN ""
 end if
 
 if li_rc <> 0 then
-	wf_error("HttpClient Result Code: "+string(li_rc ))
+	in_fn.of_error("HttpClient Result Code: "+string(li_rc ))
 	RETURN ""
 end if
 
@@ -789,128 +762,12 @@ li_rc = FileWriteEx(li_FileNum,  lblb_file )
 FileClose(li_FileNum)
 
 if li_rc = -1 then
-	wf_error( "Error Writting "+ls_filePath)
+	in_fn.of_error( "Error Writting "+ls_filePath)
 	RETURN ""
 end if
 
 RETURN ls_filePath
 end function
-
-private function boolean wf_create_bat (string as_script, string as_filepath);Integer li_file
-
-li_file = fileopen(as_FilePath, linemode!, write!, lockwrite!, replace!, EncodingANSI!)
-
-as_script = "@Echo off" +"~r~n"+ as_script
-
-if li_file > 0 then
-	if filewriteex(li_file, as_script) < 0 then
-		wf_error("Error writing File")
-		RETURN FALSE
-	end if
-	fileclose(li_file)
-else
-	wf_error("Error opening the file to write")
-	RETURN FALSE
-end if
-
-RETURN TRUE
-end function
-
-private subroutine wf_copy_pbautobuild_logs (string as_pbautobuillog, string as_mylog);Integer li_myFile, li_PCfile, li_indx, li_rtn
-blob lb_data
-
-li_PCfile = FileOpen(as_pbautobuillog, StreamMode!, Read!)
-li_myFile= FileOpen(as_mylog, StreamMode!, Write!)
-
-if li_PCfile = -1 then
-	wf_error("Error abriendo "+as_pbautobuillog)
-	RETURN
-end if	
-
-if li_myFile = -1 then
-	wf_error("Error abriendo "+as_mylog)
-	RETURN
-end if	
-
-li_indx = 0  
-
-li_rtn = FileReadex(li_PCfile, lb_data)  
-
-IF li_rtn = -1 then
-	wf_error("Escribiendo Copiando Log"+as_pbautobuillog+" a "+as_mylog)
-	RETURN
-end if	
-
-FileWriteex(li_myFile, lb_data)
-
-FileClose(li_myFile)
-FileClose(li_PCfile)
-
-Filedelete(as_pbautobuillog)
-end subroutine
-
-private function string wf_replaceall (string as_source, string as_replaced, string as_new);long ll_StartPos=1
-
-// Find the first occurrence of as_replaced.
-ll_StartPos = Pos(as_source, as_replaced, ll_StartPos)
-
-// Only enter the loop if you find as_replaced.
-DO WHILE ll_StartPos > 0
-	   // Replace as_replaced with as_new.
-    as_source = Replace(as_source, ll_StartPos, Len(as_replaced), as_new)
-      // Find the next occurrence of as_replaced. 
-	ll_StartPos = Pos(as_source, as_replaced, ll_StartPos+Len(as_new))
-LOOP
-
-RETURN as_source  
-end function
-
-private function string wf_decodebase64url (string as_value);Coderobject lnv_coderobject
-Blob lb_value
-ULong lul_len
-String ls_decoded
-Encoding lEncoding = EncodingUTF8!
-
-//Decode as_value
-lnv_coderobject = Create coderobject
-
-// allocate decoded buffer
-lul_len = Len(as_value)
-lb_value = Blob(Space(lul_len))
-
-lb_value = lnv_coderobject.base64urldecode(as_value)
-
-ls_decoded = String(BlobMid(lb_value, 1, lul_len), lEncoding)
-
-Destroy lnv_coderobject
-
-RETURN ls_decoded
-end function
-
-private subroutine wf_log (string as_text);Integer li_file
-
-li_file = FileOpen(gs_appdir +"\Log_Build.log", LineMode!, Write!, Shared!, Append!, EncodingUTF16LE!)
-
-FileWrite(li_file, string(now(), "hh:mm:ss")+" [Normal] "+ as_text)
-FileClose(li_file)
-RETURN
-end subroutine
-
-private subroutine wf_error (string as_text);Integer li_file
-
-//Solo Mostramos Mensajes Visuales si el Programa Se ejecuta manualmente.
-IF gb_auto = FALSE THEN	
-	MessageBox("Error", as_text,  Exclamation!, OK!)
-ELSE
-	//En el Log general se Graba Todo
-	wf_log(as_text)
-END IF
-
-li_file = FileOpen(gs_appdir +"\Log_Error.log", LineMode!, Write!, Shared!, Append!, EncodingUTF16LE!)
-
-FileWrite(li_file, string(now(), "hh:mm:ss")+" [Error] "+ as_text)
-FileClose(li_file)
-end subroutine
 
 on w_main.create
 this.p_1=create p_1
@@ -1024,6 +881,9 @@ is_CloudTemplateFile=gs_appdir+"\"+"CloudSetting.ini"
 is_JWTClassTemplateName = "DefaultUserStore.cs"
 is_SetupFile=gs_appdir+"\"+"setup.ini"
 
+//Borro los Log Anteriores
+FileDelete(gs_appdir +"\Log_Build.log")
+FileDelete(gs_appdir +"\Log_Error.log")
 
  // Cargo todos los Json que hay en el direcciorio de la App
 lb_json.Reset()
@@ -1247,7 +1107,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-14"), Time("12:49:15.000000"))
+datetime value = DateTime(Date("2023-01-16"), Time("11:49:25.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1270,7 +1130,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd hh:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-14"), Time("12:49:15.000000"))
+datetime value = DateTime(Date("2023-01-16"), Time("11:49:25.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1431,7 +1291,7 @@ end type
 event clicked;String ls_JsonPath, ls_JsonFile
 Long ll_Items, ll_TotalItems
 
-wf_log(fill("*", 19)+" Build Date: "+string(today(), "dd-mm-yy")+" "+fill("*", 19))
+in_fn.of_log(fill("*", 19)+" Build Date: "+string(today(), "dd-mm-yy")+" "+fill("*", 19))
 
 IF gb_auto = FALSE THEN 
 	ls_JsonPath = sle_json.text
@@ -1445,12 +1305,12 @@ ELSE
 		IF wf_load_json(ls_JsonPath) THEN
 			wf_build(ls_JsonPath)	
 		ELSE
-			wf_log("")
+			in_fn.of_log("")
 		END IF
 		IF ll_Items = ll_TotalItems THEN pb_exit.PostEvent(Clicked!)
 	NEXT
 END IF	
-wf_log(fill("*", 60))
+in_fn.of_log(fill("*", 60))
 end event
 
 type st_myversion from statictext within w_main

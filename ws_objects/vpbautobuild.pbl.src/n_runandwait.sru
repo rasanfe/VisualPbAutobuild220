@@ -192,8 +192,8 @@ public function boolean of_shellrun (string as_filename, string as_shellverb, lo
 private function string of_getlasterrortext ()
 public function boolean of_shellrunandwait (string as_filename, string as_shellverb, long al_showcmd)
 public function boolean of_runandwait (string as_exefullpath, long al_showcmd)
-public function boolean of_runandcapture (string as_exefullpath, ref string as_output)
 public function boolean of_run (string as_exefullpath, windowstate a_windowstate)
+public function boolean of_runandcapture (string as_exefullpath, ref string as_output)
 end prototypes
 
 public function boolean of_shellrun (string as_filename, string as_shellverb, long al_showcmd);// -----------------------------------------------------------------------------
@@ -398,6 +398,41 @@ Return True
 
 end function
 
+public function boolean of_run (string as_exefullpath, windowstate a_windowstate);// -----------------------------------------------------------------------------
+// SCRIPT:     n_runandwait.of_Run
+//
+// PURPOSE:    This function takes the Normal!, Maximized and
+//					Minimized! enumerated values and passes the
+//             corresponding value to the form of the function
+//					that actually does the processing.
+//
+// ARGUMENTS:  as_exepath		- Path of program to execute
+//             a_windowstate	- Show window option
+//
+// RETURN:     True=Success, False=Error
+//
+// DATE        PROG/ID		DESCRIPTION OF CHANGE / REASON
+// ----------  --------		-----------------------------------------------------
+// 07/16/2003	RolandS		Initial Coding
+// 06/20/2022    Ramón       I put back this function that RolandS removed 
+//									when rewriting this object.	
+// -----------------------------------------------------------------------------
+
+Boolean lb_rtn
+
+CHOOSE CASE a_windowstate
+	CASE Normal!
+		lb_rtn = this.of_RunAndWait(as_exefullpath, SW_SHOWNORMAL)
+	CASE Maximized!
+		lb_rtn = this.of_RunAndWait(as_exefullpath, SW_SHOWMAXIMIZED)
+	CASE Minimized!
+		lb_rtn = this.of_RunAndWait(as_exefullpath, SW_SHOWMINIMIZED)
+END CHOOSE
+
+Return lb_rtn
+
+end function
+
 public function boolean of_runandcapture (string as_exefullpath, ref string as_output);// -----------------------------------------------------------------------------
 // SCRIPT:     RunAndCapture
 //
@@ -450,7 +485,7 @@ Else
 	lstr_si.cb = 68
 End If
 lstr_si.dwFlags = STARTF_USESHOWWINDOW + STARTF_USESTDHANDLES
-lstr_si.wShowWindow = SW_HIDE
+lstr_si.wShowWindow =  SW_HIDE
 lstr_si.hStdOutput = ll_PipeWrite
 lstr_si.hStdError = ll_PipeWrite
 
@@ -489,41 +524,6 @@ CloseHandle(ll_PipeRead)
 CloseHandle(ll_PipeWrite)
 
 Return lb_Return
-
-end function
-
-public function boolean of_run (string as_exefullpath, windowstate a_windowstate);// -----------------------------------------------------------------------------
-// SCRIPT:     n_runandwait.of_Run
-//
-// PURPOSE:    This function takes the Normal!, Maximized and
-//					Minimized! enumerated values and passes the
-//             corresponding value to the form of the function
-//					that actually does the processing.
-//
-// ARGUMENTS:  as_exepath		- Path of program to execute
-//             a_windowstate	- Show window option
-//
-// RETURN:     True=Success, False=Error
-//
-// DATE        PROG/ID		DESCRIPTION OF CHANGE / REASON
-// ----------  --------		-----------------------------------------------------
-// 07/16/2003	RolandS		Initial Coding
-// 06/20/2022    Ramón       I put back this function that RolandS removed 
-//									when rewriting this object.	
-// -----------------------------------------------------------------------------
-
-Boolean lb_rtn
-
-CHOOSE CASE a_windowstate
-	CASE Normal!
-		lb_rtn = this.of_RunAndWait(as_exefullpath, SW_SHOWNORMAL)
-	CASE Maximized!
-		lb_rtn = this.of_RunAndWait(as_exefullpath, SW_SHOWMAXIMIZED)
-	CASE Minimized!
-		lb_rtn = this.of_RunAndWait(as_exefullpath, SW_SHOWMINIMIZED)
-END CHOOSE
-
-Return lb_rtn
 
 end function
 
