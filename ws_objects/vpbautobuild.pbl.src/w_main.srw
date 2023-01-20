@@ -375,7 +375,7 @@ IF is_project_type = "PowerServer" THEN
 	//2.1- Detener el Servicio de la Api
 	ls_script = "%windir%\system32\inetsrv\appcmd stop site /site.name:"+is_SolutionName
 	
-	lb_rtn  = in_fn.of_run_bat(ls_script, "start_api.bat")
+	lb_rtn  = in_fn.of_run_bat(ls_script, "stop_api.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
@@ -1108,7 +1108,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-16"), Time("19:59:52.000000"))
+datetime value = DateTime(Date("2023-01-20"), Time("10:18:00.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1132,7 +1132,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-16"), Time("19:59:52.000000"))
+datetime value = DateTime(Date("2023-01-20"), Time("10:18:00.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
