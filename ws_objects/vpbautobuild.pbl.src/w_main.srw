@@ -422,6 +422,7 @@ IF is_project_type = "PowerServer" THEN
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
+		in_fn.of_log("Start Site Name: "+is_SolutionName)
 	 //2.6- Borrar el archivo Copiarini.bat
 	 IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
 		Filedelete(gs_appdir+"\copiarini.bat")
@@ -1108,7 +1109,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-20"), Time("10:18:00.000000"))
+datetime value = DateTime(Date("2023-01-23"), Time("13:33:42.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1132,7 +1133,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-20"), Time("10:18:00.000000"))
+datetime value = DateTime(Date("2023-01-23"), Time("13:33:42.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
