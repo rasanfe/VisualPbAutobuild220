@@ -883,6 +883,10 @@ is_CloudTemplateFile=gs_appdir+"\"+"CloudSetting.ini"
 is_JWTClassTemplateName = "DefaultUserStore.cs"
 is_SetupFile=gs_appdir+"\"+"setup.ini"
 
+//Borro los Log Anteriores
+FileDelete(gs_appdir +"\Log_Build.log")
+FileDelete(gs_appdir +"\Log_Error.log")
+
  // Cargo todos los Json que hay en el direcciorio de la App
 lb_json.Reset()
 lb_json.DirList(is_AutoPath+"*.json", 0 )
@@ -1105,7 +1109,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-23"), Time("13:39:12.000000"))
+datetime value = DateTime(Date("2023-01-23"), Time("13:49:11.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1129,7 +1133,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-23"), Time("13:39:12.000000"))
+datetime value = DateTime(Date("2023-01-23"), Time("13:49:11.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!

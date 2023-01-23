@@ -72,9 +72,6 @@ end function
 public subroutine of_copy_pbautobuild_logs (string as_pbautobuillog, string as_mylog);Integer li_myFile, li_PCfile, li_indx, li_rtn
 blob lb_data
 
-//Borro el Log Anterior
-FileDelete(as_mylog)
-
 li_PCfile = FileOpen(as_pbautobuillog, StreamMode!, Read!)
 li_myFile= FileOpen(as_mylog, StreamMode!, Write!)
 
