@@ -692,7 +692,8 @@ destroy lu_jsonObject
 
 ls_control = upper(ProfileString(is_SetupFile, ls_JsonFile, "version_control", ProfileString(is_SetupFile, "setup", "version_control", "N")))
 
-IF ls_control="S" THEN
+//El control de Versiones sólo cuando s eejecuta en Automático.
+IF gb_auto= TRUE AND ls_control="S" THEN
 	ls_FilePathControl=  wf_download_version_control(as_JsonPath)
 	if ls_FilePathControl <> "" then lb_rtn = wf_load_version(ls_FilePathControl)
 	FileDelete(ls_FilePathControl)
@@ -1109,7 +1110,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-23"), Time("13:49:11.000000"))
+datetime value = DateTime(Date("2023-01-25"), Time("10:34:08.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1133,7 +1134,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-23"), Time("13:49:11.000000"))
+datetime value = DateTime(Date("2023-01-25"), Time("10:34:08.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
