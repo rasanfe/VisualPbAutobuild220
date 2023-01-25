@@ -83,7 +83,6 @@ description:	load a file and parse it
 parameters:		string as_path:	path where the json file will be found
 created:			2019-10-14
 author:			georg.brodbeck@informaticon.com
-2022-09-26:  Ramón San Félix Ramón add FileClose(li_file) rsrsystem.soft@gmail.com
 */
 
 string ls_json
@@ -91,15 +90,18 @@ integer li_file
 
 li_file = fileopen(as_path, textmode!, read!, shared!)
 if li_file > 0 then
-	if filereadex(li_file, ls_json) < 0 then
-		throw of_get_exception('Error reading the file')
-	end if
+	try
+		if filereadex(li_file, ls_json) < 0 then
+			throw of_get_exception('Error reading the file')
+		end if
+	finally
+		fileclose(li_file)
+	end try
 else
 	throw of_get_exception('Error opening file to read')
 end if
 
 of_load_string(ls_json)
-FileClose(li_file)
 end subroutine
 
 private function exception of_get_exception (string as_message);/** private
