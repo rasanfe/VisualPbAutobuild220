@@ -471,7 +471,7 @@ ELSE
 
 END IF
 SetPointer(Arrow!)
-in_fn.of_log("")
+in_fn.of_log(fill("*", 60))
 end subroutine
 
 private function boolean wf_load_version (string as_filename);Integer li_Filenum
@@ -1110,7 +1110,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-25"), Time("10:34:08.000000"))
+datetime value = DateTime(Date("2023-01-26"), Time("10:19:46.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1134,7 +1134,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-25"), Time("10:34:08.000000"))
+datetime value = DateTime(Date("2023-01-26"), Time("10:19:46.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1310,12 +1310,12 @@ ELSE
 		IF wf_load_json(ls_JsonPath) THEN
 			wf_build(ls_JsonPath)	
 		ELSE
-			in_fn.of_log("")
+			in_fn.of_log(fill("*", 60))
 		END IF
 		IF ll_Items = ll_TotalItems THEN pb_exit.PostEvent(Clicked!)
 	NEXT
 END IF	
-in_fn.of_log(fill("*", 60))
+
 end event
 
 type st_myversion from statictext within w_main
