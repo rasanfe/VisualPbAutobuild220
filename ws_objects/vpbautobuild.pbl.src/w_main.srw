@@ -122,7 +122,7 @@ end prototypes
 
 type variables
 Private:
-String is_SetupFile, is_CloudTemplateFile, is_JWTClassTemplateName 
+String is_SetupFile, is_CloudTemplateFile, is_JWTClassTemplateName, is_CSTemplateFile 
 String is_projectName, is_project_type, is_authtemplate, is_solutionname, is_RuntimeVersion, is_WebAPIURL
 String is_AutoPath, is_DeploymentVersion
 n_cst_functions in_fn
@@ -297,7 +297,10 @@ try
 		//Añadimos comando para copiar INI de configuracion JWT de la API no subido a repositorio por seguridad.
 		IF ls_AuthTemplate = "IncludeCustomJWTServer" THEN
 			lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value(gs_appdir+"\copiarini.bat")	
-		END IF	
+		END IF
+	ELSE
+		//Añadimos en Proyectos Nativos C/S y PowerClient archivo de configuración con conexion a Base de Datos
+		lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value(gs_appdir+"\copiarini.bat")	
 	END IF	
 	
 	IF FileDelete(as_JsonPath) THEN	
@@ -345,6 +348,16 @@ IF is_project_type = "PowerServer" THEN
 		ls_script = "copy /y "+char(34)+is_CloudTemplateFile+char(34)+ " "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34) 
 		lb_rtn  = in_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
 	END IF	
+ELSE
+	//Crear Bat para copiar ini de configuración de base de dastos Cliente/Servidor no Publicado en Repositorio	
+		SetProfileString ( is_CSTemplateFile, "Setup" , "DBMS",  ProfileString(is_SetupFile, ls_JsonFile, "DBMS", ProfileString(is_SetupFile, "setup", "DBMS", "")))
+		SetProfileString ( is_CSTemplateFile, "Setup" , "LogPass",  ProfileString(is_SetupFile, ls_JsonFile, "LogPass", ProfileString(is_SetupFile, "setup", "LogPass", "")))
+		SetProfileString ( is_CSTemplateFile, "Setup" , "ServerName",  ProfileString(is_SetupFile, ls_JsonFile, "ServerName", ProfileString(is_SetupFile, "setup", "ServerName", "")))
+		SetProfileString ( is_CSTemplateFile, "Setup" , "LogId",  ProfileString(is_SetupFile, ls_JsonFile, "LogId", ProfileString(is_SetupFile, "setup", "LogId", "")))
+		SetProfileString ( is_CSTemplateFile, "Setup" , "AutoCommit",  ProfileString(is_SetupFile, ls_JsonFile, "AutoCommit", ProfileString(is_SetupFile, "setup", "AutoCommit", "")))
+		SetProfileString ( is_CSTemplateFile, "Setup" , "DBParm",  ProfileString(is_SetupFile, ls_JsonFile, "DBParm", ProfileString(is_SetupFile, "setup", "DBParm", "")))
+		ls_script = "copy /y "+char(34)+is_CSTemplateFile+char(34)+ " "+char(34)+gs_appdir+"\src\Setting.ini"+char(34) 
+		lb_rtn  = in_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
 END IF	
 
 //1 - Ejecutamos PbAutobuild 2022:
@@ -432,7 +445,16 @@ IF is_project_type = "PowerServer" THEN
 	SetProfileString ( is_CloudTemplateFile, "Users" , "UserName",  "")
 	SetProfileString ( is_CloudTemplateFile, "Users" , "UserPass",  "")
 	SetProfileString ( is_CloudTemplateFile, "setup" , "TokenURL",  "")
-	
+ELSE
+	 //Borrar el archivo Copiarini.bat de los Proyectos PbNativie y PowerClient
+		Filedelete(gs_appdir+"\copiarini.bat")
+	//Resetear Plantilla	
+		SetProfileString ( is_CSTemplateFile, "Setup" , "DBMS", "") 
+		SetProfileString ( is_CSTemplateFile, "Setup" , "LogPass", "") 
+		SetProfileString ( is_CSTemplateFile, "Setup" , "ServerName", "") 
+		SetProfileString ( is_CSTemplateFile, "Setup" , "LogId", "") 
+		SetProfileString ( is_CSTemplateFile, "Setup" , "AutoCommit", "") 
+		SetProfileString ( is_CSTemplateFile, "Setup" , "DBParm", "") 
 END IF	
 
 //3- Eminiar Fuentes Descargadas
@@ -881,6 +903,7 @@ wf_version(st_myversion, st_platform)
 
 is_AutoPath =  gs_appdir+"\auto\"
 is_CloudTemplateFile=gs_appdir+"\"+"CloudSetting.ini"
+is_CSTemplateFile=gs_appdir+"\"+"Setting.ini" 
 is_JWTClassTemplateName = "DefaultUserStore.cs"
 is_SetupFile=gs_appdir+"\"+"setup.ini"
 
@@ -1110,7 +1133,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-26"), Time("10:19:46.000000"))
+datetime value = DateTime(Date("2023-01-31"), Time("09:56:36.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1134,7 +1157,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-26"), Time("10:19:46.000000"))
+datetime value = DateTime(Date("2023-01-31"), Time("09:56:36.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
