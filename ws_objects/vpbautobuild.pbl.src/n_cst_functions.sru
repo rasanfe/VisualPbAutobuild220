@@ -20,6 +20,7 @@ public subroutine of_log (string as_text)
 public subroutine of_error (string as_text)
 public function string of_replaceall (string as_source, string as_replaced, string as_new)
 public function string of_decodebase64url (string as_value)
+public function string of_download_file (string as_personaltoken, string as_url, string as_filepath)
 end prototypes
 
 public function boolean of_run_bat (string as_script, string as_filename);Boolean lb_rtn
@@ -163,6 +164,55 @@ ls_decoded = String(BlobMid(lb_value, 1, lul_len), lEncoding)
 Destroy lnv_coderobject
 
 RETURN ls_decoded
+end function
+
+public function string of_download_file (string as_personaltoken, string as_url, string as_filepath);Integer li_rc, li_ResponseStatusCode, li_FileNum
+Blob lblb_file, lblb_NextData
+HttpClient lnv_HttpClient 
+String ls_FilePath
+
+ls_FilePath = as_FilePath
+lnv_HttpClient = Create HttpClient
+
+// Send request using GET method
+// Not to read data automatically after sending request (default is true)
+lnv_HttpClient.AutoReadData = FALSE
+
+IF as_PersonalToken <> "" THEN lnv_HttpClient.SetRequestHeader("Authorization", "token "+ as_PersonalToken)
+
+li_rc = lnv_HttpClient.SendRequest("GET", as_url)
+
+li_ResponseStatusCode = lnv_HttpClient.GetResponseStatusCode()
+
+// Receive large data
+if li_rc = 1 and li_ResponseStatusCode = 200 then
+	do while TRUE
+	li_rc = lnv_HttpClient.ReadData(lblb_NextData, 1000)
+	if li_rc = 0 then exit // Finish receiving data
+	if li_rc = -1 then exit // Error occurred
+	lblb_file += lblb_NextData
+	loop
+else
+	of_error("HttpClient Result Code: "+string(li_rc )+"~r~n"+"HttpClient Response Status Code: "+string(li_ResponseStatusCode))
+	RETURN ""
+end if
+
+if li_rc <> 0 then
+	of_error("HttpClient Result Code: "+string(li_rc ))
+	RETURN ""
+end if
+
+//Write File blob to disk
+li_FileNum = FileOpen(ls_FilePath, StreamMode!, Write!, LockWrite!, Replace!)
+li_rc = FileWriteEx(li_FileNum,  lblb_file )
+FileClose(li_FileNum)
+
+if li_rc = -1 then
+	of_error( "Error Writting "+ls_FilePath)
+	RETURN ""
+end if
+
+RETURN ls_FilePath
 end function
 
 on n_cst_functions.create

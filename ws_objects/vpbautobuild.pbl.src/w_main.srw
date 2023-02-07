@@ -122,7 +122,7 @@ end prototypes
 
 type variables
 Private:
-String is_SetupFile, is_CloudTemplateFile, is_JWTClassTemplateName, is_CSTemplateFile 
+String is_SetupFile, is_JWTClassTemplateName
 String is_projectName, is_project_type, is_authtemplate, is_solutionname, is_RuntimeVersion, is_WebAPIURL
 String is_AutoPath, is_DeploymentVersion
 n_cst_functions in_fn
@@ -138,6 +138,7 @@ private subroutine wf_build (string as_jsonpath)
 private function boolean wf_load_version (string as_filename)
 private function boolean wf_load_json (string as_jsonpath)
 private function string wf_download_version_control (string as_jsonpath)
+public function string wf_download_inifile (string as_jsonpath)
 end prototypes
 
 private subroutine wf_version (statictext ast_version, statictext ast_patform);String ls_version, ls_platform, ls_path
@@ -321,6 +322,7 @@ end function
 
 private subroutine wf_build (string as_jsonpath);Boolean lb_rtn
 String  ls_JsonFIle, ls_script, ls_result, ls_error, ls_JWTClassPath, ls_PowerServerPath, ls_PBNativePath, ls_pbAutobuildPath, ls_TokenURL
+String ls_iniFile, ls_iniFilePath,  ls_IniUsersKey,  ls_IniTokenKey,  ls_IniConnectionKey
 
 SetPointer(HourGlass!)
 
@@ -332,8 +334,12 @@ IF NOT wf_save_json(as_JsonPath) THEN
 	RETURN
 END IF	
 
-//Crear Bat para copiar INI con credenciales API en Proyectos PowerServer
+//Crear Bat para copiar INI con credenciales API en Proyectos PowerServer / Datos Conexion Base de Datos en Proyectos PowerClient y Nativos
+
 IF is_project_type = "PowerServer" THEN
+	ls_iniFile = ProfileString(is_SetupFile, ls_JsonFile, "IniFie", ProfileString(is_SetupFile, "setup", "IniFie", "CloudSetting.ini"))
+	 ls_IniUsersKey= ProfileString(is_SetupFile, ls_JsonFile, "IniUsersKey", ProfileString(is_SetupFile, "setup", "IniUsersKey", "Users"))
+	 ls_IniTokenKey= ProfileString(is_SetupFile, ls_JsonFile, "IniTokenKey", ProfileString(is_SetupFile, "setup", "IniTokenKey", "Setup"))
 	//Revisamos las plantillas de Segurdidad de la API.
 	IF is_AuthTemplate <>"Default" and is_AuthTemplate<> "IncludeCustomJWTServer" THEN
 		in_fn.of_error("Plantilla de Seguridad Powerserver "+is_AuthTemplate+" no Implementada !" )
@@ -341,23 +347,34 @@ IF is_project_type = "PowerServer" THEN
 	END IF	
 	//Crear Bat para copiar ini de configuración de PowerServer no Publicado en Repositorio	
 	 IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
-		SetProfileString ( is_CloudTemplateFile, "Users" , "UserName",  ProfileString(is_SetupFile, ls_JsonFile, "UserName", ProfileString(is_SetupFile, "setup", "UserName", "")))
-		SetProfileString ( is_CloudTemplateFile, "Users" , "UserPass",  ProfileString(is_SetupFile, ls_JsonFile, "UserPass", ProfileString(is_SetupFile, "setup", "UserPass", "")))
+		ls_iniFilePath = wf_download_iniFile(as_JsonPath)
+		IF ls_iniFilePath = "" THEN RETURN
+		SetProfileString ( ls_iniFilePath,  ls_IniUsersKey , "UserName",  ProfileString(is_SetupFile, ls_JsonFile, "UserName", ProfileString(is_SetupFile, "setup", "UserName", "")))
+		SetProfileString ( ls_iniFilePath,  ls_IniUsersKey , "UserPass",  ProfileString(is_SetupFile, ls_JsonFile, "UserPass", ProfileString(is_SetupFile, "setup", "UserPass", "")))
 		ls_TokenURL = is_WebAPIURL +"/connect/token"
-		SetProfileString ( is_CloudTemplateFile, "setup" , "TokenURL",  ls_TokenURL)
-		ls_script = "copy /y "+char(34)+is_CloudTemplateFile+char(34)+ " "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34) 
+		SetProfileString ( ls_iniFilePath,  ls_IniTokenKey , "TokenURL",  ls_TokenURL)
+		ls_script = "copy /y "+char(34)+ls_iniFilePath+char(34)+ " "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34) 
 		lb_rtn  = in_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
 	END IF	
 ELSE
-	//Crear Bat para copiar ini de configuración de base de dastos Cliente/Servidor no Publicado en Repositorio	
-		SetProfileString ( is_CSTemplateFile, "Setup" , "DBMS",  ProfileString(is_SetupFile, ls_JsonFile, "DBMS", ProfileString(is_SetupFile, "setup", "DBMS", "")))
-		SetProfileString ( is_CSTemplateFile, "Setup" , "LogPass",  ProfileString(is_SetupFile, ls_JsonFile, "LogPass", ProfileString(is_SetupFile, "setup", "LogPass", "")))
-		SetProfileString ( is_CSTemplateFile, "Setup" , "ServerName",  ProfileString(is_SetupFile, ls_JsonFile, "ServerName", ProfileString(is_SetupFile, "setup", "ServerName", "")))
-		SetProfileString ( is_CSTemplateFile, "Setup" , "LogId",  ProfileString(is_SetupFile, ls_JsonFile, "LogId", ProfileString(is_SetupFile, "setup", "LogId", "")))
-		SetProfileString ( is_CSTemplateFile, "Setup" , "AutoCommit",  ProfileString(is_SetupFile, ls_JsonFile, "AutoCommit", ProfileString(is_SetupFile, "setup", "AutoCommit", "")))
-		SetProfileString ( is_CSTemplateFile, "Setup" , "DBParm",  ProfileString(is_SetupFile, ls_JsonFile, "DBParm", ProfileString(is_SetupFile, "setup", "DBParm", "")))
-		ls_script = "copy /y "+char(34)+is_CSTemplateFile+char(34)+ " "+char(34)+gs_appdir+"\src\Setting.ini"+char(34) 
+	ls_iniFile = ProfileString(is_SetupFile, ls_JsonFile, "IniFie", ProfileString(is_SetupFile, "setup", "IniFie", "Setting.ini"))
+	ls_IniConnectionKey = ProfileString(is_SetupFile, ls_JsonFile, "IniConnectionKey", ProfileString(is_SetupFile, "setup", "IniConnectionKey", "Setup"))
+	
+	//Si Indicamos archivo ini de Configuracion de Base de Datos Habrá que descargarlos para rellenarlo.
+	IF 	ls_iniFile <> "" THEN
+		ls_iniFilePath = wf_download_iniFile(as_JsonPath)
+		IF ls_iniFilePath = "" THEN RETURN
+		
+		//Crear Bat para copiar ini de configuración de base de dastos Cliente/Servidor no Publicado en Repositorio	
+		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "DBMS",  ProfileString(is_SetupFile, ls_JsonFile, "DBMS", ProfileString(is_SetupFile, "setup", "DBMS", "")))
+		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "LogPass",  ProfileString(is_SetupFile, ls_JsonFile, "LogPass", ProfileString(is_SetupFile, "setup", "LogPass", "")))
+		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "ServerName",  ProfileString(is_SetupFile, ls_JsonFile, "ServerName", ProfileString(is_SetupFile, "setup", "ServerName", "")))
+		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "LogId",  ProfileString(is_SetupFile, ls_JsonFile, "LogId", ProfileString(is_SetupFile, "setup", "LogId", "")))
+		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "AutoCommit",  ProfileString(is_SetupFile, ls_JsonFile, "AutoCommit", ProfileString(is_SetupFile, "setup", "AutoCommit", "")))
+		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "DBParm",  ProfileString(is_SetupFile, ls_JsonFile, "DBParm", ProfileString(is_SetupFile, "setup", "DBParm", "")))
+		ls_script = "copy /y "+char(34)+ls_iniFilePath+char(34)+ " "+char(34)+gs_appdir+"\src\"+ls_iniFile+char(34) 
 		lb_rtn  = in_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
+	END IF
 END IF	
 
 //1 - Ejecutamos PbAutobuild 2022:
@@ -441,20 +458,13 @@ IF is_project_type = "PowerServer" THEN
 		Filedelete(gs_appdir+"\copiarini.bat")
 	END IF
 	
-	//2.7 Reseteo archivo Panltilla CloudSetting.ini
-	SetProfileString ( is_CloudTemplateFile, "Users" , "UserName",  "")
-	SetProfileString ( is_CloudTemplateFile, "Users" , "UserPass",  "")
-	SetProfileString ( is_CloudTemplateFile, "setup" , "TokenURL",  "")
+	//2.7 Eliminar archivo INI Panltilla 
+	Filedelete(ls_iniFilePath)
 ELSE
 	 //Borrar el archivo Copiarini.bat de los Proyectos PbNativie y PowerClient
 		Filedelete(gs_appdir+"\copiarini.bat")
-	//Resetear Plantilla	
-		SetProfileString ( is_CSTemplateFile, "Setup" , "DBMS", "") 
-		SetProfileString ( is_CSTemplateFile, "Setup" , "LogPass", "") 
-		SetProfileString ( is_CSTemplateFile, "Setup" , "ServerName", "") 
-		SetProfileString ( is_CSTemplateFile, "Setup" , "LogId", "") 
-		SetProfileString ( is_CSTemplateFile, "Setup" , "AutoCommit", "") 
-		SetProfileString ( is_CSTemplateFile, "Setup" , "DBParm", "") 
+	// Eliminar archivo INI Panltilla 	
+		Filedelete(ls_iniFilePath)
 END IF	
 
 //3- Eminiar Fuentes Descargadas
@@ -726,17 +736,17 @@ END IF
 RETURN lb_rtn
 end function
 
-private function string wf_download_version_control (string as_jsonpath);Integer li_rc, li_ResponseStatusCode, li_FileNum
-Blob lblb_file, lblb_NextData
-HttpClient lnv_HttpClient 
-String ls_fileName, ls_filePath, ls_PersonalToken, ls_Pbl, ls_GitHubProfileName, ls_GitHubRepository, ls_GitBranch
-String ls_ProfileVisibility, ls_JsonFile 
+private function string wf_download_version_control (string as_jsonpath);String ls_ProjectFileName, ls_ProjectFilePath,  ls_FilePath, ls_Pbl, ls_GitHubProfileName, ls_GitHubRepository, ls_GitBranch
+String ls_ProfileVisibility, ls_PersonalToken
+String ls_JsonFile, ls_url 
 
 ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
 
 ls_ProfileVisibility = ProfileString(is_SetupFile, ls_JsonFile, "ProfileVisibility", ProfileString(is_SetupFile, "setup", "ProfileVisibility", "Public"))
-
 ls_GitHubProfileName = ProfileString(is_SetupFile, ls_JsonFile, "GitHubProfileName",  ProfileString(is_SetupFile, "setup", "GitHubProfileName", ""))
+ls_GitHubRepository = ProfileString(is_SetupFile, ls_JsonFile, "GitHubRepository", ProfileString(is_SetupFile, "setup", "GitHubRepository", ""))
+ls_GitBranch = ProfileString(is_SetupFile, ls_JsonFile, "GitBranch", ProfileString(is_SetupFile, "setup", "GitBranch", "main"))
+ls_Pbl = ProfileString(is_SetupFile, ls_JsonFile, "Pbl" , ProfileString(is_SetupFile, "setup", "Pbl" , ""))
 
 IF lower(ls_ProfileVisibility) = "private" THEN
 	ls_PersonalToken = in_fn.of_decodebase64url(ProfileString(is_SetupFile, ls_JsonFile, "PersonalToken", ProfileString(is_SetupFile, "setup", "PersonalToken", "")))
@@ -744,54 +754,58 @@ ELSE
 	ls_PersonalToken = ""
 END IF
 
-ls_GitHubRepository = ProfileString(is_SetupFile, ls_JsonFile, "GitHubRepository", ProfileString(is_SetupFile, "setup", "GitHubRepository", ""))
-ls_GitBranch = ProfileString(is_SetupFile, ls_JsonFile, "GitBranch", ProfileString(is_SetupFile, "setup", "GitBranch", "main"))
-ls_Pbl = ProfileString(is_SetupFile, ls_JsonFile, "Pbl" , ProfileString(is_SetupFile, "setup", "Pbl" , ""))
-ls_filename = ProfileString(is_SetupFile, ls_JsonFile, "filename", ProfileString(is_SetupFile, "setup", "filename", ""))
-ls_filePath = in_fn.of_replaceall(as_jsonPath, ls_JsonFile, ls_filename)
+ls_ProjectFileName = ProfileString(is_SetupFile, ls_JsonFile, "filename", ProfileString(is_SetupFile, "setup", "filename", ""))
 
 in_fn.of_log("Downloand Version Control from Git Repository: "+ls_GitHubRepository)
-in_fn.of_log("Branch: "+ls_GitBranch +" PbLibrary: "+ls_Pbl+ " Project: "+ls_filename)
+in_fn.of_log("Branch: "+ls_GitBranch +" PbLibrary: "+ls_Pbl+ " Project: "+ls_ProjectFileName)
 
-lnv_HttpClient = Create HttpClient
+ls_url =  "https://raw.githubusercontent.com/"+ls_GitHubProfileName+"/"+ls_GitHubRepository+"/"+ls_GitBranch+"/ws_objects/"+ls_pbl+".src/"+ls_ProjectFileName
 
-// Send request using GET method
-// Not to read data automatically after sending request (default is true)
-lnv_HttpClient.AutoReadData = FALSE
-IF ls_PersonalToken <> "" THEN lnv_HttpClient.SetRequestHeader("Authorization", "token "+ ls_PersonalToken)
-li_rc = lnv_HttpClient.SendRequest("GET", "https://raw.githubusercontent.com/"+ls_GitHubProfileName+"/"+ls_GitHubRepository+"/"+ls_GitBranch+"/ws_objects/"+ls_pbl+".src/"+ls_filename)
+ls_FilePath = in_fn.of_replaceall(as_jsonPath, ls_JsonFile,  ls_ProjectFileName)
+ 
+ls_ProjectFilePath = in_fn.of_download_file(ls_PersonalToken, ls_url,  ls_FilePath)
 
-li_ResponseStatusCode = lnv_HttpClient.GetResponseStatusCode()
+RETURN ls_ProjectFilePath
 
-// Receive large data
-if li_rc = 1 and li_ResponseStatusCode = 200 then
-	do while TRUE
-	li_rc = lnv_HttpClient.ReadData(lblb_NextData, 1000)
-	if li_rc = 0 then exit // Finish receiving data
-	if li_rc = -1 then exit // Error occurred
-	lblb_file += lblb_NextData
-	loop
-else
-	in_fn.of_error("HttpClient Result Code: "+string(li_rc )+"~r~n"+"HttpClient Response Status Code: "+string(li_ResponseStatusCode))
-	RETURN ""
-end if
 
-if li_rc <> 0 then
-	in_fn.of_error("HttpClient Result Code: "+string(li_rc ))
-	RETURN ""
-end if
 
-//Write File blob to disk
-li_FileNum = FileOpen(ls_filepath, StreamMode!, Write!, LockWrite!, Replace!)
-li_rc = FileWriteEx(li_FileNum,  lblb_file )
-FileClose(li_FileNum)
 
-if li_rc = -1 then
-	in_fn.of_error( "Error Writting "+ls_filePath)
-	RETURN ""
-end if
 
-RETURN ls_filePath
+
+end function
+
+public function string wf_download_inifile (string as_jsonpath);String ls_iniFilePath, ls_FilePath, ls_GitHubProfileName, ls_GitHubRepository, ls_GitBranch
+String  ls_JsonFile 
+String ls_iniFile, ls_url, ls_ProfileVisibility, ls_PersonalToken
+
+ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
+
+ls_ProfileVisibility = ProfileString(is_SetupFile, ls_JsonFile, "ProfileVisibility", ProfileString(is_SetupFile, "setup", "ProfileVisibility", "Public"))
+ls_GitHubProfileName = ProfileString(is_SetupFile, ls_JsonFile, "GitHubProfileName",  ProfileString(is_SetupFile, "setup", "GitHubProfileName", ""))
+ls_GitHubRepository = ProfileString(is_SetupFile, ls_JsonFile, "GitHubRepository", ProfileString(is_SetupFile, "setup", "GitHubRepository", ""))
+ls_GitBranch = ProfileString(is_SetupFile, ls_JsonFile, "GitBranch", ProfileString(is_SetupFile, "setup", "GitBranch", "main"))
+
+IF lower(ls_ProfileVisibility) = "private" THEN
+	ls_PersonalToken = in_fn.of_decodebase64url(ProfileString(is_SetupFile, ls_JsonFile, "PersonalToken", ProfileString(is_SetupFile, "setup", "PersonalToken", "")))
+ELSE
+	ls_PersonalToken = ""
+END IF
+
+IF is_project_type="PowerServer" THEN
+	 ls_iniFile = ProfileString(is_SetupFile, ls_JsonFile, "IniFie", ProfileString(is_SetupFile, "setup", "IniFie", "CloudSetting.ini"))
+ELSE
+	 ls_iniFile = ProfileString(is_SetupFile, ls_JsonFile, "IniFie", ProfileString(is_SetupFile, "setup", "IniFie", "Setting.ini"))
+END IF	
+
+in_fn.of_log("Downloand "+ls_iniFile+" from Git Repository: "+ls_GitHubRepository)
+
+ls_url = "https://raw.githubusercontent.com/"+ls_GitHubProfileName+"/"+ls_GitHubRepository+"/"+ls_GitBranch+"/"+ls_iniFile
+
+ ls_FilePath = in_fn.of_replaceall(as_jsonPath, ls_JsonFile,  ls_iniFile)
+
+ls_iniFilePath = in_fn.of_download_file(ls_PersonalToken, ls_url,  ls_FilePath)
+
+RETURN ls_iniFilePath
 end function
 
 on w_main.create
@@ -902,8 +916,6 @@ Long ll_TotalItems
 wf_version(st_myversion, st_platform)
 
 is_AutoPath =  gs_appdir+"\auto\"
-is_CloudTemplateFile=gs_appdir+"\"+"CloudSetting.ini"
-is_CSTemplateFile=gs_appdir+"\"+"Setting.ini" 
 is_JWTClassTemplateName = "DefaultUserStore.cs"
 is_SetupFile=gs_appdir+"\"+"setup.ini"
 
@@ -1133,7 +1145,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-31"), Time("09:56:36.000000"))
+datetime value = DateTime(Date("2023-02-07"), Time("12:31:59.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1157,7 +1169,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-01-31"), Time("09:56:36.000000"))
+datetime value = DateTime(Date("2023-02-07"), Time("12:31:59.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
