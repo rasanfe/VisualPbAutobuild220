@@ -444,6 +444,10 @@ END IF
 
 end event
 
+event closequery;open(w_main)
+
+end event
+
 type st_3 from statictext within w_setup
 integer x = 78
 integer y = 336
@@ -663,7 +667,6 @@ long backcolor = 33521664
 end type
 
 event clicked;wf_save()
-open(w_main)
 close(parent)
 
 end event
@@ -731,8 +734,7 @@ long textcolor = 16777215
 long backcolor = 33521664
 end type
 
-event clicked;open(w_main)
-close(parent)
+event clicked;close(parent)
 
 end event
 
