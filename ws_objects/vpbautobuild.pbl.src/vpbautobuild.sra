@@ -11,8 +11,10 @@ global message message
 end forward
 
 global variables
-string gs_appdir
+string gs_appdir, gs_SetupFile, gs_AutoPath
 boolean gb_auto=FALSE
+n_cst_functions gn_fn
+String gs_version, gs_platform, gs_logo
 end variables
 global type vpbautobuild from application
 string appname = "vpbautobuild"
@@ -33,6 +35,11 @@ boolean bignoreservercertificate = false
 uint ignoreservercertificate = 0
 end type
 global vpbautobuild vpbautobuild
+
+type prototypes
+//Funcion para tomar el directorio de la aplicacion  -64Bits 
+FUNCTION	uLong	GetModuleFileName ( uLong lhModule, ref string sFileName, ulong nSize )  LIBRARY "Kernel32.dll" ALIAS FOR "GetModuleFileNameW"
+end prototypes
 
 type variables
 
@@ -55,6 +62,48 @@ destroy(error)
 destroy(message)
 end on
 
-event open;open(w_main)
+event open;String ls_path, ls_pbyear
+environment env
+integer rtn
+ulong lul_handle
+Constant String ls_ExeFile="vpbautobuild.exe"
+Constant String ls_DeploymentPath="C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild"
+Boolean  lb_RunTime =FALSE
+
+rtn = GetEnvironment(env)
+
+IF rtn <> 1 THEN 
+	ls_pbyear= string(year(today()))
+	gs_version = ls_pbyear
+	gs_platform="32"
+ELSE
+	ls_pbyear = "20"+ string(env.pbmajorrevision)
+	gs_version =ls_pbyear+ "." + string(env.pbbuildnumber)
+	gs_platform=string(env.ProcessBitness)
+END IF
+
+gs_platform += " Bits"
+
+ls_Path = space(1024)
+SetNull(lul_handle)
+GetModuleFilename(lul_handle, ls_Path, len(ls_Path))
+
+if right(UPPER(ls_path), 7)="220.EXE" or right(UPPER(ls_path), 7)="X64.EXE" then
+	ls_path=ls_DeploymentPath+"\"+ls_ExeFile
+	lb_RunTime = TRUE
+end if
+
+gs_appdir=left(ls_path, len(ls_path) - (len(ls_ExeFile) + 1))
+
+gs_logo = gs_appdir+"/logo.jpg"
+
+//Añado la Versión del Programa
+IF lb_RunTime = FALSE THEN
+	n_osversion in_osver
+	in_osver.of_GetFileVersionInfo(gs_appdir+"\"+ls_exeFile)
+	gs_version = ls_pbyear+"."+ mid(in_osver.FixedProductVersion, lastPos(in_osver.FixedProductVersion, ".") + 1, len(in_osver.FixedProductVersion) - lastPos(in_osver.FixedProductVersion, ".")) 
+END IF
+
+open(w_main)
 end event
 

@@ -21,6 +21,7 @@ public subroutine of_error (string as_text)
 public function string of_replaceall (string as_source, string as_replaced, string as_new)
 public function string of_decodebase64url (string as_value)
 public function string of_download_file (string as_personaltoken, string as_url, string as_filepath)
+public function string of_profilestring (string as_section, string as_key, string as_default)
 end prototypes
 
 public function boolean of_run_bat (string as_script, string as_filename);Boolean lb_rtn
@@ -213,6 +214,14 @@ if li_rc = -1 then
 end if
 
 RETURN ls_FilePath
+end function
+
+public function string of_profilestring (string as_section, string as_key, string as_default);//Leemos Primer el Valor de la Sección Especifica y si no de la General
+String ls_value
+
+ls_value = ProfileString(gs_SetupFile, as_section, as_key, ProfileString(gs_SetupFile, "setup", as_key, as_default))
+
+RETURN ls_value
 end function
 
 on n_cst_functions.create

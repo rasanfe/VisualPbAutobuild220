@@ -2,7 +2,9 @@
 forward
 global type w_main from window
 end type
-type p_1 from picture within w_main
+type pb_setup from picturebutton within w_main
+end type
+type p_logo from picture within w_main
 end type
 type st_copyright from statictext within w_main
 end type
@@ -80,7 +82,8 @@ boolean resizable = true
 long backcolor = 67108864
 string icon = "AppIcon!"
 boolean center = true
-p_1 p_1
+pb_setup pb_setup
+p_logo p_logo
 st_copyright st_copyright
 sle_project_type sle_project_type
 st_project_type st_project_type
@@ -116,63 +119,29 @@ end type
 global w_main w_main
 
 type prototypes
-//Funcion para tomar el directorio de la aplicacion  -64Bits 
-FUNCTION	uLong	GetModuleFileName ( uLong lhModule, ref string sFileName, ulong nSize )  LIBRARY "Kernel32.dll" ALIAS FOR "GetModuleFileNameW"
+
 end prototypes
 
 type variables
 Private:
-String is_SetupFile, is_JWTClassTemplateName
+String is_JWTClassTemplateName
 String is_projectName, is_project_type, is_authtemplate, is_solutionname, is_RuntimeVersion, is_WebAPIURL
-String is_AutoPath, is_DeploymentVersion
-n_cst_functions in_fn
+String is_DeploymentVersion,  is_iniFile
 n_runandwait in_rwait
-Constant String is_DeploymentPath="C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild"
+String is_JsonFile, is_JsonPath
 end variables
 
 forward prototypes
-private subroutine wf_version (statictext ast_version, statictext ast_patform)
-private subroutine wf_modify_class (string as_jsonfile, string as_classfilepath)
-private function boolean wf_save_json (string as_jsonpath)
-private subroutine wf_build (string as_jsonpath)
-private function boolean wf_load_version (string as_filename)
-private function boolean wf_load_json (string as_jsonpath)
-private function string wf_download_version_control (string as_jsonpath)
-public function string wf_download_inifile (string as_jsonpath)
+private subroutine wf_modify_class (string as_classfilepath)
+private function boolean wf_save_json ()
+private subroutine wf_build ()
+private function boolean wf_load_json ()
+private function string wf_download_version_control ()
+public function string wf_download_inifile ()
+private function boolean wf_load_version (string as_filepathcontrol)
 end prototypes
 
-private subroutine wf_version (statictext ast_version, statictext ast_patform);String ls_version, ls_platform, ls_path
-environment env
-integer rtn
-ulong lul_handle
-
-rtn = GetEnvironment(env)
-
-IF rtn <> 1 THEN 
-	ls_version = string(year(today()))
-	ls_platform="32"
-ELSE
-	ls_version = "20"+ string(env.pbmajorrevision)+ "." + string(env.pbbuildnumber)
-	ls_platform=string(env.ProcessBitness)
-END IF
-
-ls_platform += " Bits"
-
-ast_version.text=ls_version
-ast_patform.text=ls_platform
-
-ls_Path = space(1024)
-SetNull(lul_handle)
-GetModuleFilename(lul_handle, ls_Path, len(ls_Path))
-
-if right(UPPER(ls_path), 7)="220.EXE" or right(UPPER(ls_path), 7)="X64.EXE" then
-	ls_path=is_DeploymentPath+"\vpbautobuild.exe"
-end if
-
-gs_appdir=left(ls_path, len(ls_path) - (len("vpbautobuild.exe") + 1))
-end subroutine
-
-private subroutine wf_modify_class (string as_jsonfile, string as_classfilepath);integer li_FileNum, li_rtn
+private subroutine wf_modify_class (string as_classfilepath);integer li_FileNum, li_rtn
 blob lbl_data
 String ls_Emp_Input
 String ls_classname
@@ -186,27 +155,27 @@ ls_Emp_Input= String(lbl_data, EncodingANSI!)
 
 SetNull(lbl_data)
 
-ls_UserName = ProfileString(is_SetupFile, as_JsonFile, "UserName", ProfileString(is_SetupFile, "setup", "UserName", ""))
-ls_UserPass =  in_fn.of_decodebase64url(ProfileString(is_SetupFile, as_JsonFile, "UserPass", ProfileString(is_SetupFile, "setup", "UserPass", "")))
+ls_UserName = gn_fn.of_ProfileString( is_JsonFile, "UserName", "")
+ls_UserPass =  gn_fn.of_decodebase64url(gn_fn.of_ProfileString( is_JsonFile, "UserPass", ""))
 
 //La información del Claim se puede guardar en general para todos los proyectos o especificar indiviualmente.
-ls_Scope = ProfileString(is_SetupFile, as_JsonFile, "Scope", ProfileString(is_SetupFile, "setup", "Scope", ""))
-ls_Name =  ProfileString(is_SetupFile, as_JsonFile, "Name", ProfileString(is_SetupFile, "setup", "Name", ""))
-ls_GivenName  = ProfileString(is_SetupFile, as_JsonFile, "GivenName", ProfileString(is_SetupFile, "setup", "GivenName", ""))
-ls_FamilyName =  ProfileString(is_SetupFile, as_JsonFile, "FamilyName", ProfileString(is_SetupFile, "setup", "FamilyName", ""))
-ls_WebSite =  ProfileString(is_SetupFile, as_JsonFile, "WebSite", ProfileString(is_SetupFile, "setup", "WebSite", ""))
-ls_Email  =  ProfileString(is_SetupFile, as_JsonFile, "Email", ProfileString(is_SetupFile, "setup", "Email", ""))
-ls_EmailVerified =  ProfileString(is_SetupFile, as_JsonFile, "EmailVerified", ProfileString(is_SetupFile, "setup", "EmailVerified", ""))
+ls_Scope = gn_fn.of_ProfileString( is_JsonFile, "Scope", "")
+ls_Name =  gn_fn.of_ProfileString( is_JsonFile, "Name","")
+ls_GivenName  = gn_fn.of_ProfileString( is_JsonFile, "GivenName", "")
+ls_FamilyName =  gn_fn.of_ProfileString( is_JsonFile, "FamilyName", "")
+ls_WebSite =  gn_fn.of_ProfileString( is_JsonFile, "WebSite", "")
+ls_Email  =  gn_fn.of_ProfileString( is_JsonFile, "Email", "")
+ls_EmailVerified =  gn_fn.of_ProfileString( is_JsonFile, "EmailVerified","")
 
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"UserName"+char(34), char(34)+ls_UserName+char(34))
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"UserPass"+char(34), char(34)+ls_UserPass+char(34))
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"Scope"+char(34), char(34)+ls_Scope+char(34))
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"Name"+char(34), char(34)+ls_Name+char(34))
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"GivenName"+char(34), char(34)+ls_GivenName+char(34))
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"FamilyName"+char(34), char(34)+ls_FamilyName+char(34))
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"WebSite"+char(34), char(34)+ls_WebSite+char(34))
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"Email"+char(34), char(34)+ls_Email+char(34))
-ls_Emp_Input = in_fn.of_replaceall(ls_Emp_Input, char(34)+"EmailVerified"+char(34), char(34)+ls_EmailVerified+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"UserName"+char(34), char(34)+ls_UserName+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"UserPass"+char(34), char(34)+ls_UserPass+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Scope"+char(34), char(34)+ls_Scope+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Name"+char(34), char(34)+ls_Name+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"GivenName"+char(34), char(34)+ls_GivenName+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"FamilyName"+char(34), char(34)+ls_FamilyName+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"WebSite"+char(34), char(34)+ls_WebSite+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Email"+char(34), char(34)+ls_Email+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"EmailVerified"+char(34), char(34)+ls_EmailVerified+char(34))
 
 FileDelete(as_ClassFilePath)
 
@@ -219,7 +188,7 @@ li_rtn = FileWriteEx(li_FileNum, lbl_data)
 FileClose(li_FileNum)
 end subroutine
 
-private function boolean wf_save_json (string as_jsonpath);String ls_ProductVersion1, ls_ProductVersion2, ls_ProductVersion3, ls_ProductVersion4
+private function boolean wf_save_json ();String ls_ProductVersion1, ls_ProductVersion2, ls_ProductVersion3, ls_ProductVersion4
 Datetime ldt_AvailabeTime, ldt_ExpirationTime
 String ls_ProductVersion, ls_FileVersion, ls_MinimumCompatibleVersion, ls_DeploymentVersion
 Boolean lb_return=TRUE
@@ -244,7 +213,7 @@ ls_ProductVersion=ls_ProductVersion1+"."+ls_ProductVersion2+"."+ls_ProductVersio
 ls_FileVersion = ls_ProductVersion
 
 try
-	lu_jsonObject.of_load_file(as_JsonPath)
+	lu_jsonObject.of_load_file(is_JsonPath)
 	
 	//Actualizo el Runtime:
 	lu_jsonObject.of_get_node("MetaInfo").of_get_node("RuntimeVersion").of_set_value(is_RunTimeVersion)
@@ -252,7 +221,7 @@ try
 	//Obtengo el Directorio y el Target
 	ls_target = lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("Merging").of_get_node(1).of_get_node("Target").of_get_value_string()
 	ls_dir = 	lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("Merging").of_get_node(1).of_get_node("LocalProjectPath").of_get_value_string()
-	ls_target = in_fn.of_replaceall(ls_target, ls_dir+"\", "")
+	ls_target = gn_fn.of_replaceall(ls_target, ls_dir+"\", "")
 	
 	//MOdificamos las rutas
 	ls_dir = gs_appdir+"\src"
@@ -290,28 +259,31 @@ try
 		lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("Version").of_get_node("ExecutableVersionUsedByInstaller").of_get_node("FileVersion").of_get_node(4).of_set_value(integer(ls_DeploymentVersion))
 	END IF
 	
+	
 	IF is_project_type = "PowerServer" THEN
 		//ls_SolutionName= lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("WebAPIs").of_get_node("SolutionGeneration").of_get_node("SolutionName").of_get_value_string()
 		ls_ApiPath = ls_dir +"\repos"
 		lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("WebAPIs").of_get_node("SolutionGeneration").of_get_node("SolutionLocation").of_set_value(ls_ApiPath)
 		ls_AuthTemplate = lu_jsonObject.of_get_node("Projects").of_get_node(is_projectName ).of_get_node("WebAPIs").of_get_node("SolutionGeneration").of_get_node("AuthTemplate").of_get_value_string()
 		//Añadimos comando para copiar INI de configuracion JWT de la API no subido a repositorio por seguridad.
-		IF ls_AuthTemplate = "IncludeCustomJWTServer" THEN
+		IF is_iniFile <> "" AND ls_AuthTemplate = "IncludeCustomJWTServer" THEN
 			lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value(gs_appdir+"\copiarini.bat")	
 		END IF
 	ELSE
 		//Añadimos en Proyectos Nativos C/S y PowerClient archivo de configuración con conexion a Base de Datos
-		lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value(gs_appdir+"\copiarini.bat")	
+		IF is_iniFile <> "" THEN
+			lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value(gs_appdir+"\copiarini.bat")	
+		END IF
 	END IF	
 	
-	IF FileDelete(as_JsonPath) THEN	
-		lu_jsonObject.of_save_to_file(as_JsonPath)
+	IF FileDelete(is_JsonPath) THEN	
+		lu_jsonObject.of_save_to_file(is_JsonPath)
 	ELSE
-		in_fn.of_error("File locked by another process")
+		gn_fn.of_error("File locked by another process")
 	END IF	
 
 catch (exception le_ex)
-	in_fn.of_error(le_ex.getmessage())
+	gn_fn.of_error(le_ex.getmessage())
 	lb_return = FALSE
 end try
 
@@ -320,170 +292,172 @@ destroy lu_jsonObject
 RETURN lb_return
 end function
 
-private subroutine wf_build (string as_jsonpath);Boolean lb_rtn
-String  ls_JsonFIle, ls_script, ls_result, ls_error, ls_JWTClassPath, ls_PowerServerPath, ls_PBNativePath, ls_pbAutobuildPath, ls_TokenURL
-String ls_iniFile, ls_iniFilePath,  ls_IniUsersKey,  ls_IniTokenKey,  ls_IniConnectionKey
+private subroutine wf_build ();Boolean lb_rtn
+String  ls_script, ls_result, ls_error, ls_JWTClassPath, ls_PowerServerPath, ls_PBNativePath, ls_pbAutobuildPath, ls_TokenURL
+String ls_iniFilePath,  ls_IniUsersKey,  ls_IniTokenKey,  ls_IniConnectionKey
 
 SetPointer(HourGlass!)
 
-IF as_JsonPath="" THEN RETURN
+IF is_JsonPath="" THEN RETURN
 
-ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
-
-IF NOT wf_save_json(as_JsonPath) THEN
+IF NOT wf_save_json() THEN
 	RETURN
 END IF	
 
 //Crear Bat para copiar INI con credenciales API en Proyectos PowerServer / Datos Conexion Base de Datos en Proyectos PowerClient y Nativos
+is_iniFile = gn_fn.of_ProfileString( is_JsonFile, "IniFie", "")
 
-IF is_project_type = "PowerServer" THEN
-	ls_iniFile = ProfileString(is_SetupFile, ls_JsonFile, "IniFie", ProfileString(is_SetupFile, "setup", "IniFie", "CloudSetting.ini"))
-	 ls_IniUsersKey= ProfileString(is_SetupFile, ls_JsonFile, "IniUsersKey", ProfileString(is_SetupFile, "setup", "IniUsersKey", "Users"))
-	 ls_IniTokenKey= ProfileString(is_SetupFile, ls_JsonFile, "IniTokenKey", ProfileString(is_SetupFile, "setup", "IniTokenKey", "Setup"))
-	//Revisamos las plantillas de Segurdidad de la API.
-	IF is_AuthTemplate <>"Default" and is_AuthTemplate<> "IncludeCustomJWTServer" THEN
-		in_fn.of_error("Plantilla de Seguridad Powerserver "+is_AuthTemplate+" no Implementada !" )
-		RETURN
-	END IF	
-	//Crear Bat para copiar ini de configuración de PowerServer no Publicado en Repositorio	
-	 IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
-		ls_iniFilePath = wf_download_iniFile(as_JsonPath)
-		IF ls_iniFilePath = "" THEN RETURN
-		SetProfileString ( ls_iniFilePath,  ls_IniUsersKey , "UserName",  ProfileString(is_SetupFile, ls_JsonFile, "UserName", ProfileString(is_SetupFile, "setup", "UserName", "")))
-		SetProfileString ( ls_iniFilePath,  ls_IniUsersKey , "UserPass",  ProfileString(is_SetupFile, ls_JsonFile, "UserPass", ProfileString(is_SetupFile, "setup", "UserPass", "")))
-		ls_TokenURL = is_WebAPIURL +"/connect/token"
-		SetProfileString ( ls_iniFilePath,  ls_IniTokenKey , "TokenURL",  ls_TokenURL)
-		ls_script = "copy /y "+char(34)+ls_iniFilePath+char(34)+ " "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34) 
-		lb_rtn  = in_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
-	END IF	
-ELSE
-	ls_iniFile = ProfileString(is_SetupFile, ls_JsonFile, "IniFie", ProfileString(is_SetupFile, "setup", "IniFie", "Setting.ini"))
-	ls_IniConnectionKey = ProfileString(is_SetupFile, ls_JsonFile, "IniConnectionKey", ProfileString(is_SetupFile, "setup", "IniConnectionKey", "Setup"))
-	
-	//Si Indicamos archivo ini de Configuracion de Base de Datos Habrá que descargarlos para rellenarlo.
-	IF 	ls_iniFile <> "" THEN
-		ls_iniFilePath = wf_download_iniFile(as_JsonPath)
-		IF ls_iniFilePath = "" THEN RETURN
+IF is_iniFile <> "" THEN
+	IF is_project_type = "PowerServer" THEN
+		 ls_IniUsersKey= gn_fn.of_ProfileString( is_JsonFile, "IniUsersKey", "Users")
+		 ls_IniTokenKey= gn_fn.of_ProfileString( is_JsonFile, "IniTokenKey", "Setup")
+		//Revisamos las plantillas de Segurdidad de la API.
+		IF is_AuthTemplate <>"Default" and is_AuthTemplate<> "IncludeCustomJWTServer" THEN
+			gn_fn.of_error("Plantilla de Seguridad Powerserver "+is_AuthTemplate+" no Implementada !" )
+			RETURN
+		END IF	
+		//Crear Bat para copiar ini de configuración de PowerServer no Publicado en Repositorio	
+		 IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
+			ls_iniFilePath = wf_download_iniFile()
+			IF ls_iniFilePath = "" THEN RETURN
+			SetProfileString ( ls_iniFilePath,  ls_IniUsersKey , "UserName",  gn_fn.of_ProfileString( is_JsonFile, "UserName", ""))
+			SetProfileString ( ls_iniFilePath,  ls_IniUsersKey , "UserPass",  gn_fn.of_ProfileString( is_JsonFile, "UserPass", ""))
+			ls_TokenURL = is_WebAPIURL +"/connect/token"
+			SetProfileString ( ls_iniFilePath,  ls_IniTokenKey , "TokenURL",  ls_TokenURL)
+			ls_script = "copy /y "+char(34)+ls_iniFilePath+char(34)+ " "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34) 
+			lb_rtn  = gn_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
+		END IF	
+	ELSE
+		ls_IniConnectionKey = gn_fn.of_ProfileString( is_JsonFile, "IniConnectionKey", "Setup")
 		
-		//Crear Bat para copiar ini de configuración de base de dastos Cliente/Servidor no Publicado en Repositorio	
-		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "DBMS",  ProfileString(is_SetupFile, ls_JsonFile, "DBMS", ProfileString(is_SetupFile, "setup", "DBMS", "")))
-		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "LogPass",  ProfileString(is_SetupFile, ls_JsonFile, "LogPass", ProfileString(is_SetupFile, "setup", "LogPass", "")))
-		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "ServerName",  ProfileString(is_SetupFile, ls_JsonFile, "ServerName", ProfileString(is_SetupFile, "setup", "ServerName", "")))
-		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "LogId",  ProfileString(is_SetupFile, ls_JsonFile, "LogId", ProfileString(is_SetupFile, "setup", "LogId", "")))
-		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "AutoCommit",  ProfileString(is_SetupFile, ls_JsonFile, "AutoCommit", ProfileString(is_SetupFile, "setup", "AutoCommit", "")))
-		SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "DBParm",  ProfileString(is_SetupFile, ls_JsonFile, "DBParm", ProfileString(is_SetupFile, "setup", "DBParm", "")))
-		ls_script = "copy /y "+char(34)+ls_iniFilePath+char(34)+ " "+char(34)+gs_appdir+"\src\"+ls_iniFile+char(34) 
-		lb_rtn  = in_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
+		//Si Indicamos archivo ini de Configuracion de Base de Datos Habrá que descargarlos para rellenarlo.
+		IF 	is_iniFile <> "" THEN
+			ls_iniFilePath = wf_download_iniFile()
+			IF ls_iniFilePath = "" THEN RETURN
+			
+			//Crear Bat para copiar ini de configuración de base de dastos Cliente/Servidor no Publicado en Repositorio	
+			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "DBMS",  gn_fn.of_ProfileString( is_JsonFile, "DBMS", ""))
+			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "LogPass",  gn_fn.of_ProfileString( is_JsonFile, "LogPass", ""))
+			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "ServerName",  gn_fn.of_ProfileString( is_JsonFile, "ServerName", ""))
+			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "LogId",  gn_fn.of_ProfileString( is_JsonFile, "LogId", ""))
+			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "AutoCommit",  gn_fn.of_ProfileString( is_JsonFile, "AutoCommit", ""))
+			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "DBParm",  gn_fn.of_ProfileString( is_JsonFile, "DBParm", ""))
+			ls_script = "copy /y "+char(34)+ls_iniFilePath+char(34)+ " "+char(34)+gs_appdir+"\src\"+is_iniFile+char(34) 
+			lb_rtn  = gn_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
+		END IF
 	END IF
-END IF	
+END IF
 
 //1 - Ejecutamos PbAutobuild 2022:
-ls_pbAutobuildPath = 	ProfileString(is_setupFile, "setup", "PbAutobuildPath", "")
+ls_pbAutobuildPath = 	ProfileString(gs_SetupFile, "setup", "PbAutobuildPath", "")
 if trim(ls_pbAutobuildPath)<>"" and right(ls_pbAutobuildPath, 1) <> "\" then  ls_pbAutobuildPath += "\" 
 ls_pbAutobuildPath+="pbautobuild220.exe"
 
-ls_script = char(34)+ls_pbAutobuildPath+char(34)+" /f "+char(34)+as_JsonPath+char(34)+" /l "+char(34)+gs_appdir+"\Log_PCBuild.log"+char(34)+ " /le "+char(34)+gs_appdir+"\Log_PCError.log"+char(34)
+ls_script = char(34)+ls_pbAutobuildPath+char(34)+" /f "+char(34)+is_JsonPath+char(34)+" /l "+char(34)+gs_appdir+"\Log_PCBuild.log"+char(34)+ " /le "+char(34)+gs_appdir+"\Log_PCError.log"+char(34)
 
-in_fn.of_log("Start "+ls_pbAutobuildPath)
+gn_fn.of_log("Start "+ls_pbAutobuildPath)
 lb_rtn  = in_rwait.of_run(ls_script, Normal!)
-//lb_rtn  =  in_fn.of_run_bat(ls_script, "build.bat")
+//lb_rtn  =  gn_fn.of_run_bat(ls_script, "build.bat")
 
 // check return code
 IF lb_rtn = FALSE THEN
-	in_fn.of_error( "¡ Pbautobuild220 Error !")
+	gn_fn.of_error( "¡ Pbautobuild220 Error !")
 	 RETURN
 END IF
 
 //Copy Pb Autobuild Logs to my log
-in_fn.of_copy_pbautobuild_logs(gs_appdir+"\Log_PCBuild.log", gs_appdir +"\Log_Build.log")
-in_fn.of_copy_pbautobuild_logs(gs_appdir+"\Log_PCError.log", gs_appdir +"\Log_Error.log")
-in_fn.of_log("End "+ls_pbAutobuildPath)
+gn_fn.of_copy_pbautobuild_logs(gs_appdir+"\Log_PCBuild.log", gs_appdir +"\Log_Build.log")
+gn_fn.of_copy_pbautobuild_logs(gs_appdir+"\Log_PCError.log", gs_appdir +"\Log_Error.log")
+gn_fn.of_log("End "+ls_pbAutobuildPath)
 
 //2 -Revisamos Opciones en Proyectos PowerServer
 IF is_project_type = "PowerServer" THEN
 
-	//2.1- Detener el Servicio de la Api
+	//2.1.1- Detener el Servicio de la Api
 	ls_script = "%windir%\system32\inetsrv\appcmd stop site /site.name:"+is_SolutionName
 	
-	lb_rtn  = in_fn.of_run_bat(ls_script, "stop_api.bat")
+	lb_rtn  = gn_fn.of_run_bat(ls_script, "stop_api.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
-	in_fn.of_log("Stop Site Name: "+is_SolutionName)
-	//2.2- Borrar la Carpera del sitio Web
+	gn_fn.of_log("Stop Site Name: "+is_SolutionName)
+	//2.1.2- Borrar la Carpera del sitio Web
 		
-	ls_PowerServerPath=ProfileString(is_setupFile, ls_JsonFile, "PowerServerPath", ProfileString(is_setupFile, "setup", "PowerServerPath", ""))
+	ls_PowerServerPath=gn_fn.of_ProfileString( is_JsonFile, "PowerServerPath", "")
 	
 	if right(ls_PowerServerPath, 1) <> "\" then  ls_PowerServerPath += "\" 
 	ls_script = "RMDIR /s /q "+char(34)+ls_PowerServerPath +lower(is_SolutionName)+char(34)
 	
-	lb_rtn  = in_fn.of_run_bat(ls_script, "delete_repos.bat")
+	lb_rtn  = gn_fn.of_run_bat(ls_script, "delete_repos.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
-	in_fn.of_log("Delete Site Path: "+ls_PowerServerPath +lower(is_SolutionName))
+	gn_fn.of_log("Delete Site Path: "+ls_PowerServerPath +lower(is_SolutionName))
 	
-	//2.3- Copiar Archivo DefaultUserStore.cs
+	//2.1.3- Copiar Archivo DefaultUserStore.cs
 	IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
 		
 		ls_script = "copy /y "+char(34)+gs_appdir+"\"+is_JWTClassTemplateName+char(34)+ " "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName+char(34) 
 				
-		lb_rtn  = in_fn.of_run_bat(ls_script, "copy_class.bat")
+		lb_rtn  = gn_fn.of_run_bat(ls_script, "copy_class.bat")
 	
 		IF lb_rtn = FALSE THEN	RETURN
 		
 		//Inyecto las credenciales de Archivo Ini de la app y la info de los Claims de mi archivo Setup.ini
 		ls_JWTClassPath = gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName
-		wf_modify_class(ls_JsonFile, ls_JWTClassPath)
-		in_fn.of_log("Add JWT Class Template: "+is_JWTClassTemplateName)
+		wf_modify_class(ls_JWTClassPath)
+		gn_fn.of_log("Add JWT Class Template: "+is_JWTClassTemplateName)
 	END IF
-	//2.4- Publicar Sitio Web
+	//2.1.4- Publicar Sitio Web
 	ls_script = "dotnet.exe publish "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\ServerAPIs.csproj"+char(34)+" -c release -o "+ls_PowerServerPath+lower(is_SolutionName)
 	
-	lb_rtn  = in_fn.of_run_bat(ls_script, "publish_api.bat")
+	lb_rtn  = gn_fn.of_run_bat(ls_script, "publish_api.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
-	in_fn.of_log("Publish Site Name: "+is_SolutionName)
-	//2.5- Reactivar el Servicio de la Api
+	gn_fn.of_log("Publish Site Name: "+is_SolutionName)
+	//2.1.5- Reactivar el Servicio de la Api
 	ls_script = "%windir%\system32\inetsrv\appcmd start site /site.name:"+is_SolutionName
 	
-	lb_rtn  = in_fn.of_run_bat(ls_script, "start_api.bat")
+	lb_rtn  = gn_fn.of_run_bat(ls_script, "start_api.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 	
-		in_fn.of_log("Start Site Name: "+is_SolutionName)
-	 //2.6- Borrar el archivo Copiarini.bat
-	 IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
+		gn_fn.of_log("Start Site Name: "+is_SolutionName)
+	 //2.1.6- Borrar el archivo Copiarini.bat
+	 IF  is_iniFile <> "" AND is_AuthTemplate = "IncludeCustomJWTServer" THEN
 		Filedelete(gs_appdir+"\copiarini.bat")
-	END IF
-	
-	//2.7 Eliminar archivo INI Panltilla 
-	Filedelete(ls_iniFilePath)
-ELSE
-	 //Borrar el archivo Copiarini.bat de los Proyectos PbNativie y PowerClient
-		Filedelete(gs_appdir+"\copiarini.bat")
-	// Eliminar archivo INI Panltilla 	
+	//2.1.7 Eliminar archivo INI Panltilla 
 		Filedelete(ls_iniFilePath)
-END IF	
+	END IF
+ELSE
+	IF is_iniFile <> "" THEN
+		//2.2.1 Borrar el archivo Copiarini.bat 
+		Filedelete(gs_appdir+"\copiarini.bat")
+		//2.2.2 Eliminar archivo INI descargado de Git
+		Filedelete(ls_iniFilePath)
+	END IF
+END IF
+
 
 //3- Eminiar Fuentes Descargadas
 IF  is_project_type <> "PB Native" THEN 
 	//3.1   Eliminar Directorio Completo src en aplicaciones PowerClient/PowerServer Publicadas.
 	ls_script = "RMDIR /s /q "+char(34)+gs_appdir+"\src"+char(34)
 	
-	lb_rtn  = in_fn.of_run_bat(ls_script, "delete_source.bat")
-	in_fn.of_log("Delete Source Code: "+gs_appdir+"\src")
+	lb_rtn  = gn_fn.of_run_bat(ls_script, "delete_source.bat")
+	gn_fn.of_log("Delete Source Code: "+gs_appdir+"\src")
 ELSE
 	//3.2- Eliminar fuentes y dejar Programa Nativo Compilado en Directorio con nombre del proyecto.
 	
-	ls_PBNativePath=ProfileString(is_setupFile, ls_JsonFile, "PBNativePath", ProfileString(is_setupFile, "setup", "PBNativePath", gs_appdir))
+	ls_PBNativePath=gn_fn.of_ProfileString( is_JsonFile, "PBNativePath", gs_appdir)
+	
 	if trim(ls_PBNativePath)= "" then ls_PBNativePath = gs_appdir
 	if right(ls_PBNativePath, 1) <> "\" then  ls_PBNativePath += "\" 
 	
 	ls_script = "RMDIR /s /q "+char(34)+ls_PBNativePath +is_projectName+char(34)
 	
-	lb_rtn  = in_fn.of_run_bat(ls_script, "delete_nativepath.bat")
+	lb_rtn  = gn_fn.of_run_bat(ls_script, "delete_nativepath.bat")
 
 	IF lb_rtn = FALSE THEN	RETURN
 
@@ -497,150 +471,31 @@ ELSE
 	ls_script += "DEL "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34)+" /S /Q /F" +"~r~n"
 	ls_script += "MOVE "+char(34)+gs_appdir+"\src"+char(34)+" "+char(34)+ls_PBNativePath+is_projectName+char(34)
 
-	lb_rtn  = in_fn.of_run_bat(ls_script, "delete_source.bat")
-	in_fn.of_log("Delete Source Code: "+gs_appdir+"\src")
-	in_fn.of_log("Compiled Path: "+gs_appdir+"\"+is_projectName)
+	lb_rtn  = gn_fn.of_run_bat(ls_script, "delete_source.bat")
+	gn_fn.of_log("Delete Source Code: "+gs_appdir+"\src")
+	gn_fn.of_log("Compiled Path: "+gs_appdir+"\"+is_projectName)
 
 END IF
 SetPointer(Arrow!)
-in_fn.of_log(fill("*", 60))
+gn_fn.of_log(fill("*", 60))
 end subroutine
 
-private function boolean wf_load_version (string as_filename);Integer li_Filenum
-integer li_indx, li_rtn
-string ls_line, ls_data
-Blob lblb_file 
-u_json lu_jsonObject
-Datetime ldt_AvailabeTime, ldt_ExpirationTime
-String ls_MinimumCompatibleVersion
-Integer li_ProductVersion1,  li_ProductVersion2,  li_ProductVersion3,  li_ProductVersion4
-String ls_RuntimeVersion, ls_DeployVersion
-
-li_FileNum = FileOpen(as_filename, LineMode!, Read!, LockRead!)
-li_indx = 0  
-IF is_project_type="PB Native" THEN
-	//Tomo como versión Product Version (PVN en fichero .srj)
-	do while li_indx > -1
-		li_rtn = FileReadex(li_FileNum, ls_line)  
-		IF  li_rtn  = -1 THEN
-			in_fn.of_error("FileRead Error")
-			EXIT
-		ELSE
-			li_indx ++  
-			IF left(ls_line, 4)="EXE:" THEN
-				ls_RuntimeVersion =  Mid(ls_line, pos(ls_line, "Runtime ") + len("Runtime "), len(ls_line))
-			END IF	
-			IF left(ls_line, 4)<>"PVN:" THEN
-				CONTINUE
-			ELSE
-				EXIT
-			END IF	
-		END IF	
-	loop  
-	 FileClose(li_FileNum)
-	
-	li_ProductVersion1 = integer( mid(ls_line, pos(ls_line, ":") + 1, pos(ls_line, ",") - pos(ls_line, ":")  - 1) )
-	
-	ls_line = in_fn.of_replaceall(ls_line, "PVN:"+string(li_ProductVersion1)+",", "")
-	
-	li_ProductVersion2 =  integer(left(ls_line, pos(ls_line, ",") - 1)) 
-	
-	ls_line = in_fn.of_replaceall(ls_line, string(li_ProductVersion2)+",", "")
-	
-	li_ProductVersion3 = integer( left(ls_line, pos(ls_line, ",") - 1))
-	
-	ls_line = in_fn.of_replaceall(ls_line, string(li_ProductVersion3)+",", "")
-	
-	li_ProductVersion4 = integer(ls_line)
-	ls_DeployVersion = ls_line
-	
-	ls_MinimumCompatibleVersion = ls_DeployVersion
-	ldt_AvailabeTime = dp_availale.value
-	ldt_ExpirationTime =dp_expiration.value
-ELSE	
-	// Para PowerClient y PowerServer es lo mismo: Tomo la Versión de Publicación
-	//Extraemos Json del fichero del proyecto usado como Control de Versión.
-	do while li_indx > -1
-		li_rtn = FileReadex(li_FileNum, ls_line)  
-		IF  li_rtn  = -1 THEN
-			in_fn.of_error("FileRead Error")
-			EXIT
-		ELSE
-			li_indx ++  
-			IF left(ls_line, 12)<>"POWERCLIENT:" THEN CONTINUE
-			IF left(ls_line, 12)="POWERCLIENT:" THEN ls_data = in_fn.of_replaceall(ls_line, "POWERCLIENT:", "")
-			IF left(ls_line, 4)="PBD:" THEN EXIT
-		END IF	
-	loop  
-	 FileClose(li_FileNum)
-	 
-	
-	lu_jsonObject = create u_json
-		 
-	try
-		lu_jsonObject.of_load_string(ls_data)
-			
-		ls_MinimumCompatibleVersion=lu_jsonObject.of_get_node(is_projectName).of_get_node("MinimumValidVersion").of_get_value_string()
-		ldt_AvailabeTime =  lu_jsonObject.of_get_node(is_projectName).of_get_node("OnlineTime").of_get_value_datetime()
-		ldt_ExpirationTime =  lu_jsonObject.of_get_node(is_projectName).of_get_node("OfflineTime").of_get_value_datetime()
-		li_ProductVersion1 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionMajor").of_get_value_number()
-		li_ProductVersion2 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionMinor").of_get_value_number()
-		li_ProductVersion3 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionBuild").of_get_value_number()
-		li_ProductVersion4 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionRevision").of_get_value_number()
-		ls_DeployVersion =  lu_jsonObject.of_get_node(is_projectName ).of_get_node("DeployVersion").of_get_value_string()
-		ls_RuntimeVersion = lu_jsonObject.of_get_node(is_projectName).of_get_node("RuntimeVersion").of_get_value_string()
-		
-	
-	catch (exception le_ex)
-		in_fn.of_error(le_ex.getmessage())
-		RETURN FALSE
-	end try
-END IF
-
-//Actualizo los Datos de Pantalla con la Versión del archivo *.srj ya que de aqui se tomarán los valores para guardar el Json.
-sle_major.Text = string(li_ProductVersion1)
-sle_minor.Text = string(li_ProductVersion2)
-sle_build.Text = string(li_ProductVersion3)
-sle_revision.Text =  string(li_ProductVersion4)
-sle_minimum.Text = ls_MinimumCompatibleVersion
-dp_availale.value = ldt_AvailabeTime
-dp_expiration.value = ldt_ExpirationTime 
-		
-IF ls_RuntimeVersion <> is_RunTimeVersion THEN
-	in_fn.of_error("Git RunTime Version: "+ls_RuntimeVersion+ " inconsistent with Json RunTime Version: "+is_RuntimeVersion )
-	//Lo actualizo para intentar continuar así:
-	is_RuntimeVersion = ls_RuntimeVersion
-END IF	
-
-//Si la versión es Mayor Retorno TRUE para que haga la compilación si no Retorno False para que no la haga.
-IF dec(ls_DeployVersion) > dec(is_DeploymentVersion) THEN
-	in_fn.of_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+ " Start the update...")
-	RETURN TRUE
-ELSE
-	in_fn.of_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+" Nothing to update.")
-	RETURN FALSE
-END IF
-end function
-
-private function boolean wf_load_json (string as_jsonpath);//La función sólo devuelve False si se ejecuta el programa de forma autómatica y está activado el Parametro version_control="S" en setup.ini
+private function boolean wf_load_json ();//La función sólo devuelve False si se ejecuta el programa de forma autómatica y está activado el Parametro version_control="S" en setup.ini
 // Y al descargar el archivo *.srj se comprubea que la versión no es superior.
 
 String ls_DeploymentVersion
 Datetime ldt_AvailabeTime, ldt_ExpirationTime
 String ls_MinimumCompatibleVersion
 Integer li_ProductVersion1,  li_ProductVersion2,  li_ProductVersion3,  li_ProductVersion4
-String ls_JsonFile
 Integer li_ProjectType 
 u_json lu_jsonObject
 Boolean lb_rtn
 String ls_auto, ls_control, ls_FilePathControl
 
-ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
-
-in_fn.of_log("Load Json: "+ls_JsonFile)
+gn_fn.of_log("Load Json: "+is_JsonFile)
 lu_jsonObject = create u_json
 try
-	lu_jsonObject.of_load_file(as_JsonPath)
+	lu_jsonObject.of_load_file(is_JsonPath)
 	
 	is_RuntimeVersion =  lu_jsonObject.of_get_node("MetaInfo").of_get_node("RuntimeVersion").of_get_value_string()
 	is_projectName =  lu_jsonObject.of_get_node("Projects").of_get_node(1).of_get_key()
@@ -677,7 +532,7 @@ try
 		is_SolutionName =  ""
 	end if	
 catch (exception le_ex)
-	in_fn.of_error(le_ex.getmessage())
+	gn_fn.of_error(le_ex.getmessage())
 	RETURN FALSE
 end try
 
@@ -722,11 +577,11 @@ gb_powerclient.text  = is_project_type
 
 destroy lu_jsonObject
 
-ls_control = upper(ProfileString(is_SetupFile, ls_JsonFile, "version_control", ProfileString(is_SetupFile, "setup", "version_control", "N")))
+ls_control = upper(gn_fn.of_ProfileString( is_JsonFile, "version_control", "N"))
 
 //El control de Versiones sólo cuando s eejecuta en Automático.
 IF gb_auto= TRUE AND ls_control="S" THEN
-	ls_FilePathControl=  wf_download_version_control(as_JsonPath)
+	ls_FilePathControl=  wf_download_version_control()
 	if ls_FilePathControl <> "" then lb_rtn = wf_load_version(ls_FilePathControl)
 	FileDelete(ls_FilePathControl)
 ELSE
@@ -736,34 +591,32 @@ END IF
 RETURN lb_rtn
 end function
 
-private function string wf_download_version_control (string as_jsonpath);String ls_ProjectFileName, ls_ProjectFilePath,  ls_FilePath, ls_Pbl, ls_GitHubProfileName, ls_GitHubRepository, ls_GitBranch
+private function string wf_download_version_control ();String ls_ProjectFileName, ls_ProjectFilePath,  ls_FilePath, ls_Pbl, ls_GitHubProfileName, ls_GitHubRepository, ls_GitBranch
 String ls_ProfileVisibility, ls_PersonalToken
-String ls_JsonFile, ls_url 
+String ls_url 
 
-ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
-
-ls_ProfileVisibility = ProfileString(is_SetupFile, ls_JsonFile, "ProfileVisibility", ProfileString(is_SetupFile, "setup", "ProfileVisibility", "Public"))
-ls_GitHubProfileName = ProfileString(is_SetupFile, ls_JsonFile, "GitHubProfileName",  ProfileString(is_SetupFile, "setup", "GitHubProfileName", ""))
-ls_GitHubRepository = ProfileString(is_SetupFile, ls_JsonFile, "GitHubRepository", ProfileString(is_SetupFile, "setup", "GitHubRepository", ""))
-ls_GitBranch = ProfileString(is_SetupFile, ls_JsonFile, "GitBranch", ProfileString(is_SetupFile, "setup", "GitBranch", "main"))
-ls_Pbl = ProfileString(is_SetupFile, ls_JsonFile, "Pbl" , ProfileString(is_SetupFile, "setup", "Pbl" , ""))
+ls_ProfileVisibility = gn_fn.of_ProfileString( is_JsonFile, "ProfileVisibility", "Public")
+ls_GitHubProfileName = gn_fn.of_ProfileString( is_JsonFile, "GitHubProfileName", "")
+ls_GitHubRepository = gn_fn.of_ProfileString( is_JsonFile, "GitHubRepository", "")
+ls_GitBranch = gn_fn.of_ProfileString( is_JsonFile, "GitBranch", "main")
+ls_Pbl = gn_fn.of_ProfileString( is_JsonFile, "Pbl" , "")
 
 IF lower(ls_ProfileVisibility) = "private" THEN
-	ls_PersonalToken = in_fn.of_decodebase64url(ProfileString(is_SetupFile, ls_JsonFile, "PersonalToken", ProfileString(is_SetupFile, "setup", "PersonalToken", "")))
+	ls_PersonalToken = gn_fn.of_decodebase64url(gn_fn.of_ProfileString( is_JsonFile, "PersonalToken", ""))
 ELSE
 	ls_PersonalToken = ""
 END IF
 
-ls_ProjectFileName = ProfileString(is_SetupFile, ls_JsonFile, "filename", ProfileString(is_SetupFile, "setup", "filename", ""))
+ls_ProjectFileName = gn_fn.of_ProfileString( is_JsonFile, "ProjectFileName", "")
 
-in_fn.of_log("Downloand Version Control from Git Repository: "+ls_GitHubRepository)
-in_fn.of_log("Branch: "+ls_GitBranch +" PbLibrary: "+ls_Pbl+ " Project: "+ls_ProjectFileName)
+gn_fn.of_log("Downloand Version Control from Git Repository: "+ls_GitHubRepository)
+gn_fn.of_log("Branch: "+ls_GitBranch +" PbLibrary: "+ls_Pbl+ " Project: "+ls_ProjectFileName)
 
 ls_url =  "https://raw.githubusercontent.com/"+ls_GitHubProfileName+"/"+ls_GitHubRepository+"/"+ls_GitBranch+"/ws_objects/"+ls_pbl+".src/"+ls_ProjectFileName
 
-ls_FilePath = in_fn.of_replaceall(as_jsonPath, ls_JsonFile,  ls_ProjectFileName)
+ls_FilePath = gn_fn.of_replaceall(is_JsonPath, is_JsonFile,  ls_ProjectFileName)
  
-ls_ProjectFilePath = in_fn.of_download_file(ls_PersonalToken, ls_url,  ls_FilePath)
+ls_ProjectFilePath = gn_fn.of_download_file(ls_PersonalToken, ls_url,  ls_FilePath)
 
 RETURN ls_ProjectFilePath
 
@@ -774,42 +627,150 @@ RETURN ls_ProjectFilePath
 
 end function
 
-public function string wf_download_inifile (string as_jsonpath);String ls_iniFilePath, ls_FilePath, ls_GitHubProfileName, ls_GitHubRepository, ls_GitBranch
-String  ls_JsonFile 
-String ls_iniFile, ls_url, ls_ProfileVisibility, ls_PersonalToken
+public function string wf_download_inifile ();String ls_iniFilePath, ls_FilePath, ls_GitHubProfileName, ls_GitHubRepository, ls_GitBranch
+String ls_url, ls_ProfileVisibility, ls_PersonalToken
 
-ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
-
-ls_ProfileVisibility = ProfileString(is_SetupFile, ls_JsonFile, "ProfileVisibility", ProfileString(is_SetupFile, "setup", "ProfileVisibility", "Public"))
-ls_GitHubProfileName = ProfileString(is_SetupFile, ls_JsonFile, "GitHubProfileName",  ProfileString(is_SetupFile, "setup", "GitHubProfileName", ""))
-ls_GitHubRepository = ProfileString(is_SetupFile, ls_JsonFile, "GitHubRepository", ProfileString(is_SetupFile, "setup", "GitHubRepository", ""))
-ls_GitBranch = ProfileString(is_SetupFile, ls_JsonFile, "GitBranch", ProfileString(is_SetupFile, "setup", "GitBranch", "main"))
+ls_ProfileVisibility = gn_fn.of_ProfileString( is_JsonFile, "ProfileVisibility", "Public")
+ls_GitHubProfileName = gn_fn.of_ProfileString( is_JsonFile, "GitHubProfileName", "")
+ls_GitHubRepository = gn_fn.of_ProfileString( is_JsonFile, "GitHubRepository", "")
+ls_GitBranch = gn_fn.of_ProfileString( is_JsonFile, "GitBranch", "main")
 
 IF lower(ls_ProfileVisibility) = "private" THEN
-	ls_PersonalToken = in_fn.of_decodebase64url(ProfileString(is_SetupFile, ls_JsonFile, "PersonalToken", ProfileString(is_SetupFile, "setup", "PersonalToken", "")))
+	ls_PersonalToken = gn_fn.of_decodebase64url(gn_fn.of_ProfileString( is_JsonFile, "PersonalToken", ""))
 ELSE
 	ls_PersonalToken = ""
 END IF
 
-IF is_project_type="PowerServer" THEN
-	 ls_iniFile = ProfileString(is_SetupFile, ls_JsonFile, "IniFie", ProfileString(is_SetupFile, "setup", "IniFie", "CloudSetting.ini"))
-ELSE
-	 ls_iniFile = ProfileString(is_SetupFile, ls_JsonFile, "IniFie", ProfileString(is_SetupFile, "setup", "IniFie", "Setting.ini"))
-END IF	
+gn_fn.of_log("Downloand "+is_iniFile+" from Git Repository: "+ls_GitHubRepository)
 
-in_fn.of_log("Downloand "+ls_iniFile+" from Git Repository: "+ls_GitHubRepository)
+ls_url = "https://raw.githubusercontent.com/"+ls_GitHubProfileName+"/"+ls_GitHubRepository+"/"+ls_GitBranch+"/"+is_iniFile
 
-ls_url = "https://raw.githubusercontent.com/"+ls_GitHubProfileName+"/"+ls_GitHubRepository+"/"+ls_GitBranch+"/"+ls_iniFile
+ ls_FilePath = gn_fn.of_replaceall(is_JsonPath, is_JsonFile,  is_iniFile)
 
- ls_FilePath = in_fn.of_replaceall(as_jsonPath, ls_JsonFile,  ls_iniFile)
-
-ls_iniFilePath = in_fn.of_download_file(ls_PersonalToken, ls_url,  ls_FilePath)
+ls_iniFilePath = gn_fn.of_download_file(ls_PersonalToken, ls_url,  ls_FilePath)
 
 RETURN ls_iniFilePath
 end function
 
+private function boolean wf_load_version (string as_filepathcontrol);Integer li_Filenum
+integer li_indx, li_rtn
+string ls_line, ls_data
+Blob lblb_file 
+u_json lu_jsonObject
+Datetime ldt_AvailabeTime, ldt_ExpirationTime
+String ls_MinimumCompatibleVersion
+Integer li_ProductVersion1,  li_ProductVersion2,  li_ProductVersion3,  li_ProductVersion4
+String ls_RuntimeVersion, ls_DeployVersion
+
+li_FileNum = FileOpen(as_FilePathControl, LineMode!, Read!, LockRead!)
+li_indx = 0  
+IF is_project_type="PB Native" THEN
+	//Tomo como versión Product Version (PVN en fichero .srj)
+	do while li_indx > -1
+		li_rtn = FileReadex(li_FileNum, ls_line)  
+		IF  li_rtn  = -1 THEN
+			gn_fn.of_error("FileRead Error")
+			EXIT
+		ELSE
+			li_indx ++  
+			IF left(ls_line, 4)="EXE:" THEN
+				ls_RuntimeVersion =  Mid(ls_line, pos(ls_line, "Runtime ") + len("Runtime "), len(ls_line))
+			END IF	
+			IF left(ls_line, 4)<>"PVN:" THEN
+				CONTINUE
+			ELSE
+				EXIT
+			END IF	
+		END IF	
+	loop  
+	 FileClose(li_FileNum)
+	
+	li_ProductVersion1 = integer( mid(ls_line, pos(ls_line, ":") + 1, pos(ls_line, ",") - pos(ls_line, ":")  - 1) )
+	
+	ls_line = gn_fn.of_replaceall(ls_line, "PVN:"+string(li_ProductVersion1)+",", "")
+	
+	li_ProductVersion2 =  integer(left(ls_line, pos(ls_line, ",") - 1)) 
+	
+	ls_line = gn_fn.of_replaceall(ls_line, string(li_ProductVersion2)+",", "")
+	
+	li_ProductVersion3 = integer( left(ls_line, pos(ls_line, ",") - 1))
+	
+	ls_line = gn_fn.of_replaceall(ls_line, string(li_ProductVersion3)+",", "")
+	
+	li_ProductVersion4 = integer(ls_line)
+	ls_DeployVersion = ls_line
+	
+	ls_MinimumCompatibleVersion = ls_DeployVersion
+	ldt_AvailabeTime = dp_availale.value
+	ldt_ExpirationTime =dp_expiration.value
+ELSE	
+	// Para PowerClient y PowerServer es lo mismo: Tomo la Versión de Publicación
+	//Extraemos Json del fichero del proyecto usado como Control de Versión.
+	do while li_indx > -1
+		li_rtn = FileReadex(li_FileNum, ls_line)  
+		IF  li_rtn  = -1 THEN
+			gn_fn.of_error("FileRead Error")
+			EXIT
+		ELSE
+			li_indx ++  
+			IF left(ls_line, 12)<>"POWERCLIENT:" THEN CONTINUE
+			IF left(ls_line, 12)="POWERCLIENT:" THEN ls_data = gn_fn.of_replaceall(ls_line, "POWERCLIENT:", "")
+			IF left(ls_line, 4)="PBD:" THEN EXIT
+		END IF	
+	loop  
+	 FileClose(li_FileNum)
+	 
+	
+	lu_jsonObject = create u_json
+		 
+	try
+		lu_jsonObject.of_load_string(ls_data)
+			
+		ls_MinimumCompatibleVersion=lu_jsonObject.of_get_node(is_projectName).of_get_node("MinimumValidVersion").of_get_value_string()
+		ldt_AvailabeTime =  lu_jsonObject.of_get_node(is_projectName).of_get_node("OnlineTime").of_get_value_datetime()
+		ldt_ExpirationTime =  lu_jsonObject.of_get_node(is_projectName).of_get_node("OfflineTime").of_get_value_datetime()
+		li_ProductVersion1 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionMajor").of_get_value_number()
+		li_ProductVersion2 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionMinor").of_get_value_number()
+		li_ProductVersion3 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionBuild").of_get_value_number()
+		li_ProductVersion4 = lu_jsonObject.of_get_node(is_projectName ).of_get_node("ProductVersionRevision").of_get_value_number()
+		ls_DeployVersion =  lu_jsonObject.of_get_node(is_projectName ).of_get_node("DeployVersion").of_get_value_string()
+		ls_RuntimeVersion = lu_jsonObject.of_get_node(is_projectName).of_get_node("RuntimeVersion").of_get_value_string()
+		
+	
+	catch (exception le_ex)
+		gn_fn.of_error(le_ex.getmessage())
+		RETURN FALSE
+	end try
+END IF
+
+//Actualizo los Datos de Pantalla con la Versión del archivo *.srj ya que de aqui se tomarán los valores para guardar el Json.
+sle_major.Text = string(li_ProductVersion1)
+sle_minor.Text = string(li_ProductVersion2)
+sle_build.Text = string(li_ProductVersion3)
+sle_revision.Text =  string(li_ProductVersion4)
+sle_minimum.Text = ls_MinimumCompatibleVersion
+dp_availale.value = ldt_AvailabeTime
+dp_expiration.value = ldt_ExpirationTime 
+		
+IF ls_RuntimeVersion <> is_RunTimeVersion THEN
+	gn_fn.of_error("Git RunTime Version: "+ls_RuntimeVersion+ " inconsistent with Json RunTime Version: "+is_RuntimeVersion )
+	//Lo actualizo para intentar continuar así:
+	is_RuntimeVersion = ls_RuntimeVersion
+END IF	
+
+//Si la versión es Mayor Retorno TRUE para que haga la compilación si no Retorno False para que no la haga.
+IF dec(ls_DeployVersion) > dec(is_DeploymentVersion) THEN
+	gn_fn.of_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+ " Start the update...")
+	RETURN TRUE
+ELSE
+	gn_fn.of_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+" Nothing to update.")
+	RETURN FALSE
+END IF
+end function
+
 on w_main.create
-this.p_1=create p_1
+this.pb_setup=create pb_setup
+this.p_logo=create p_logo
 this.st_copyright=create st_copyright
 this.sle_project_type=create sle_project_type
 this.st_project_type=create st_project_type
@@ -841,7 +802,8 @@ this.gb_powerclient=create gb_powerclient
 this.r_2=create r_2
 this.pb_exit=create pb_exit
 this.lb_json=create lb_json
-this.Control[]={this.p_1,&
+this.Control[]={this.pb_setup,&
+this.p_logo,&
 this.st_copyright,&
 this.sle_project_type,&
 this.st_project_type,&
@@ -876,7 +838,8 @@ this.lb_json}
 end on
 
 on w_main.destroy
-destroy(this.p_1)
+destroy(this.pb_setup)
+destroy(this.p_logo)
 destroy(this.st_copyright)
 destroy(this.sle_project_type)
 destroy(this.st_project_type)
@@ -910,14 +873,15 @@ destroy(this.pb_exit)
 destroy(this.lb_json)
 end on
 
-event open;String ls_JsonPath
-Long ll_TotalItems
+event open;Long ll_TotalItems
 
-wf_version(st_myversion, st_platform)
+st_myversion.text=gs_version
+st_platform.text=gs_platform
+p_logo.PictureName = gs_logo
 
-is_AutoPath =  gs_appdir+"\auto\"
+gs_SetupFile=gs_appdir+"\"+"setup.ini"
+gs_AutoPath =  gs_appdir+"\auto"
 is_JWTClassTemplateName = "DefaultUserStore.cs"
-is_SetupFile=gs_appdir+"\"+"setup.ini"
 
 //Borro los Log Anteriores
 FileDelete(gs_appdir +"\Log_Build.log")
@@ -925,7 +889,7 @@ FileDelete(gs_appdir +"\Log_Error.log")
 
  // Cargo todos los Json que hay en el direcciorio de la App
 lb_json.Reset()
-lb_json.DirList(is_AutoPath+"*.json", 0 )
+lb_json.DirList(gs_AutoPath+"\*.json", 0 )
 ll_TotalItems = lb_json.TotalItems()
 
 IF ll_TotalItems > 0 THEN 
@@ -933,32 +897,63 @@ IF ll_TotalItems > 0 THEN
 	lb_json.visible=TRUE
 	sle_json.visible=FALSE
 	pb_abrir_json.visible=FALSE
+	pb_setup.visible=FALSE
 	pb_build.visible=FALSE
 	pb_exit.x = pb_exit.x  - 288
-	Timer(1)
 ELSE
 	gb_auto= FALSE //Si no hay archivos en la Carpeta auto intentará abrir el ultimo json que se abrio y funcionará de forma manual.
 	lb_json.visible= FALSE
 	sle_json.visible= TRUE
-	ls_JsonPath=ProfileString(is_SetupFile, "setup", "json", "")
-	sle_json.text = ls_JsonPath
-	if trim(ls_JsonPath) <> "" then
-		wf_load_json(ls_JsonPath)
-	end if	
+END IF	
+
+//Si no existe fichero de Configuración hay que crearlo.
+IF FileExists(gs_SetupFile) =  FALSE THEN
+	OPEN(w_setup)
+	Close(THIS)
+	RETURN
+ELSE
+	IF gb_auto=TRUE  THEN 
+		pb_build.TriggerEvent(clicked!)
+	ELSE
+		is_JsonPath=ProfileString(gs_SetupFile, "setup", "json", "")
+		is_JsonFile = mid(is_JsonPath, lastpos(is_JsonPath, "\") +1 , len(is_JsonPath) - lastpos(is_JsonPath, "\"))
+		sle_json.text = is_JsonPath
+		if trim(is_JsonPath) <> "" then
+			wf_load_json()
+		end if	
+	END IF
 END IF	
 end event
 
-event closequery;String ls_auto, ls_JsonPath
-
-ls_JsonPath = sle_json.text
-SetProfileString(is_SetupFile, "setup", "json", ls_JsonPath)
+event closequery;
+SetProfileString(gs_SetupFile, "setup", "json", is_JsonPath)
 end event
 
-event timer;Timer(0)
-pb_build.triggerevent(clicked!)
+type pb_setup from picturebutton within w_main
+integer x = 2702
+integer y = 276
+integer width = 110
+integer height = 96
+integer taborder = 10
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+string pointer = "HyperLink!"
+string picturename = "Options1!"
+alignment htextalign = left!
+string powertiptext = "Configurar Setup.ini"
+end type
+
+event clicked;
+IF trim(is_JsonPath) <> "" THEN wf_save_json()	
+open(w_setup)
+close(parent)
 end event
 
-type p_1 from picture within w_main
+type p_logo from picture within w_main
 integer x = 18
 integer y = 8
 integer width = 1253
@@ -1145,7 +1140,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-07"), Time("12:31:59.000000"))
+datetime value = DateTime(Date("2023-02-13"), Time("11:43:22.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1169,7 +1164,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-07"), Time("12:31:59.000000"))
+datetime value = DateTime(Date("2023-02-13"), Time("11:43:22.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1324,28 +1319,29 @@ string pointer = "HyperLink!"
 string text = "Build"
 boolean originalsize = true
 vtextalign vtextalign = vcenter!
+string powertiptext = "Ejecutar"
 long textcolor = 16777215
 long backcolor = 33521664
 end type
 
-event clicked;String ls_JsonPath, ls_JsonFile
-Long ll_Items, ll_TotalItems
+event clicked;Long ll_Items, ll_TotalItems
 
-in_fn.of_log(fill("*", 19)+" Build Date: "+string(today(), "dd-mm-yy")+" "+fill("*", 19))
+gn_fn.of_log(fill("*", 19)+" Build Date: "+string(today(), "dd-mm-yy")+" "+fill("*", 19))
 
 IF gb_auto = FALSE THEN 
-	ls_JsonPath = sle_json.text
-	wf_build(ls_JsonPath)	
+	is_JsonPath= sle_json.text
+	is_JsonFile = mid(is_JsonPath, lastpos(is_JsonPath, "\") +1 , len(is_JsonPath) - lastpos(is_JsonPath, "\"))
+	wf_build()	
 ELSE
 	ll_TotalItems = lb_json.TotalItems()
 	FOR ll_Items = 1 TO  ll_TotalItems
 		lb_json.SelectItem(ll_Items)
-		ls_JsonFile =lb_json.Text(ll_Items)
-		ls_JsonPath = is_AutoPath + ls_JsonFile
-		IF wf_load_json(ls_JsonPath) THEN
-			wf_build(ls_JsonPath)	
+		is_JsonFile =lb_json.Text(ll_Items)
+		is_JsonPath = gs_AutoPath +"\"+ is_JsonFile
+		IF wf_load_json() THEN
+			wf_build()	
 		ELSE
-			in_fn.of_log(fill("*", 60))
+			gn_fn.of_log(fill("*", 60))
 		END IF
 		IF ll_Items = ll_TotalItems THEN pb_exit.PostEvent(Clicked!)
 	NEXT
@@ -1354,9 +1350,9 @@ END IF
 end event
 
 type st_myversion from statictext within w_main
-integer x = 2309
+integer x = 1353
 integer y = 44
-integer width = 489
+integer width = 1445
 integer height = 84
 integer textsize = -12
 integer weight = 400
@@ -1433,21 +1429,21 @@ string facename = "Tahoma"
 string pointer = "HyperLink!"
 string picturename = "Open!"
 alignment htextalign = left!
+string powertiptext = "Abrir Proyecto Json"
 end type
 
-event clicked;String ls_JsonPath, ls_JsonFile  // la priemera variable contiene el directorio y el nombre de archivo, la segunda solo el nombre de archivo.
-String ls_current
+event clicked;String ls_current
 
 ChangeDirectory (gs_appdir)
 
-IF GetFileOpenName ( "Proyecto Json", ls_JsonPath, ls_JsonFile, "*.*","(*.json),*.json" ) < 1 THEN Return
+IF GetFileOpenName ( "Proyecto Json", is_JsonPath, is_JsonFile, "*.*","(*.json),*.json" ) < 1 THEN Return
 
 ChangeDirectory (gs_appdir)
  
-sle_json.text=ls_JsonPath
+sle_json.text=is_JsonPath
 
 //Cargamos los dartos de Json
- wf_load_json(ls_JsonPath)
+ wf_load_json()
 end event
 
 type gb_product_version from groupbox within w_main
@@ -1510,6 +1506,7 @@ string pointer = "HyperLink!"
 string text = "Exit"
 boolean originalsize = true
 vtextalign vtextalign = vcenter!
+string powertiptext = "Salir"
 long textcolor = 16777215
 long backcolor = 33521664
 end type
