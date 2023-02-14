@@ -79,7 +79,7 @@ dw_1.SetRedraw(False)
 dw_1.AcceptText()
 ls_filter = dw_1.Object.DataWindow.Table.Filter
 
-IF isnull(ls_filter) or Trim(ls_filter)="" THEN ls_filter=""
+IF ls_filter="?" THEN ls_filter=""
 
 //Quitamos los Filtros Para Guardar Correctamente todos los apartados.
 dw_1.SetFilter("")
