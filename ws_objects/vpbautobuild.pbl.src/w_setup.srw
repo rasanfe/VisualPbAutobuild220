@@ -72,10 +72,16 @@ public subroutine wf_save ();//Optamos Por crear Un Fichero Nevo Para poder Grab
 //Ya que si hay una clave en blanco en un proyecto y esta está parametrizada en el apartado Setup, en vez de leer el apartado Setup leeria un string en blanco.
 
 Long ll_Row, ll_RowCount
-String ls_section, ls_key, ls_value, ls_text, ls_section_ant=""
+String ls_section, ls_key, ls_value, ls_text, ls_section_ant="", ls_filter
 Integer li_file
 
+dw_1.SetRedraw(False)
 dw_1.AcceptText()
+ls_filter = dw_1.Object.DataWindow.Table.Filter
+
+//Quitamos los Filtros Para Guardar Correctamente todos los apartados.
+dw_1.SetFilter("")
+dw_1.Filter()
 ll_RowCount = dw_1.RowCount()
 
 //Elimino el Fichero y creo uno Nuevo ANSI, para que las funciones ProfileString y SetProfileString funcionen correctamente.
@@ -122,7 +128,9 @@ FOR ll_Row = 1 To ll_RowCount
 NEXT	
 
 FileClose(li_file)
-
+dw_1.SetFilter(ls_filter)
+dw_1.Filter()
+dw_1.SetRedraw(True)
 end subroutine
 
 public function integer wf_load_json (string as_jsonpath);String ls_JsonFile, ls_ProjectName
