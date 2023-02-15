@@ -139,6 +139,8 @@ public function integer wf_load_json (string as_jsonpath);String ls_JsonFile, ls
 Integer li_ProjectType
 u_json lu_jsonObject
 
+IF NOT FileExists(as_JsonPath) THEN RETURN -1
+
 ls_JsonFile = mid(as_JsonPath, lastpos(as_JsonPath, "\") +1 , len(as_JsonPath) - lastpos(as_JsonPath, "\"))
 
 lu_jsonObject = create u_json
@@ -246,7 +248,7 @@ end subroutine
 
 public subroutine wf_fill_ini ();Long ll_Items,  ll_TotalItems, ll_row, ll_RowCount, ll_new
 String ls_JsonFile, ls_JsonPath
-String ls_section, ls_key, ls_value
+String ls_Section, ls_key, ls_value
 Integer li_ProjectType
 String ls_ProjectControl
 
@@ -266,7 +268,7 @@ ll_RowCount =ds_Data.RowCount()
 
 //Insertamos los Parametros Exclusivos del Apartado Setup
 FOR ll_Row = 1 to ll_RowCount
-	ls_section = "setup"
+	ls_Section = "setup"
 	ls_key=ds_Data.object.Key[ll_Row]
 	ls_value =  ""
 	li_ProjectType = -1
@@ -281,7 +283,7 @@ FOR ll_Row = 1 to ll_RowCount
 	
 	ll_new = dw_1.InsertRow(0)
 	dw_1.Object.id[ll_new] = ll_new
-	dw_1.Object.Section[ll_new] = ls_section
+	dw_1.Object.Section[ll_new] = ls_Section
 	dw_1.Object.Key[ll_new] = ls_key
 	dw_1.Object.Value[ll_new] = ls_value 
 	dw_1.Object.Project_Type[ll_new] =li_ProjectType
@@ -297,7 +299,7 @@ FOR ll_items = 1 to  ll_TotalItems
 	
 	ddlb_filtro.InsertItem(ls_JsonFile, 0)
 	
-	ls_section = ls_JsonFile 
+	ls_Section = ls_JsonFile 
 	
 	FOR ll_Row = 1 to ll_RowCount
 		
@@ -306,7 +308,7 @@ FOR ll_items = 1 to  ll_TotalItems
 				ls_ProjectControl = ds_Data.Object.nativecsapp[ll_Row] 
 			CASE 1
 				ls_ProjectControl = ds_Data.Object.powerclient[ll_Row] 
-			CASE 3
+			CASE 2
 				ls_ProjectControl = ds_Data.Object.powerserver[ll_Row] 
 		END CHOOSE
 					
@@ -317,7 +319,7 @@ FOR ll_items = 1 to  ll_TotalItems
 			
 			ll_new = dw_1.InsertRow(0)
 			dw_1.Object.id[ll_new] = ll_new
-			dw_1.Object.Section[ll_new] = ls_section
+			dw_1.Object.Section[ll_new] = ls_Section
 			dw_1.Object.Key[ll_new] = ls_key
 			dw_1.Object.Value[ll_new] = ls_value 
 			dw_1.Object.Project_Type[ll_new] = li_ProjectType
@@ -480,7 +482,6 @@ integer x = 352
 integer y = 328
 integer width = 782
 integer height = 592
-integer taborder = 10
 integer textsize = -10
 integer weight = 400
 fontcharset fontcharset = ansi!
@@ -490,46 +491,40 @@ string facename = "Tahoma"
 long textcolor = 33554432
 boolean sorted = false
 boolean vscrollbar = true
-string item[] = {"Todo","Proyectos Nativos","Proyectos PowerClient","Proyectos PowerServer","Setup"}
+string item[] = {"Todo","Setup"}
 borderstyle borderstyle = stylelowered!
 end type
 
-event selectionchanged;String ls_filtro, ls_JsonPath
-Integer li_projectType
+event selectionchanged;String ls_Filter, ls_Section, ls_JsonPath
+Integer li_ProjectType
 Long ll_Row, ll_RowCOunt
 DataWindowChild dw_child
 
 Choose case index
 	case  1
-		ls_filtro = ""
+		ls_Section ="todo"
+		ls_Filter = ""
 	case 2
-		li_projectType = 0
-		ls_filtro = "project_type = "+string(li_projectType)
-	case 3
-		li_projectType = 1
-		ls_filtro = "project_type = "+string(li_projectType)
-	case 4
-		li_projectType = 2
-		ls_filtro = "project_type = "+string(li_projectType)
-	case 5
-		li_projectType = -1
-		ls_filtro = "project_type = "+string(li_projectType)	
+		ls_Section ="setup"
+		ls_Filter = "section = '"+ls_Section+"'"
+		li_ProjectType = -1
 	case else
 		ls_JsonPath =  is_Path+"\" + ddlb_filtro.text
 		li_ProjectType = wf_load_json(ls_JsonPath)
-		ls_filtro = "section = '"+ddlb_filtro.text+"'"
+		ls_Section =ddlb_filtro.text
+		ls_Filter = "section = '"+ls_Section+"'"
 end choose	
 
-dw_1.setfilter(ls_filtro)
+dw_1.setfilter(ls_Filter)
 dw_1.Filter()
 
 IF dw_1.RowCount() = 0 THEN
-	IF lower(ddlb_filtro.text)="todo" THEN
+	IF ls_section ="todo" THEN
 		wf_fill_ini()
 	ELSE	
 		ll_Row = dw_1.InsertRow(0)
 		dw_1.Object.id[ ll_Row] = ll_Row + dw_1.FilteredCount()
-		dw_1.Object.Section[ ll_Row] = lower(ddlb_filtro.text)
+		dw_1.Object.Section[ ll_Row] = ls_Section
 		dw_1.Object.Project_Type[ ll_Row] = li_ProjectType
 		dw_1.Object.Value[ ll_Row] = ""
 		wf_dddw_select(ll_row)
@@ -763,7 +758,7 @@ integer x = 178
 integer y = 876
 integer width = 2688
 integer height = 80
-integer taborder = 20
+integer taborder = 30
 integer textsize = -10
 integer weight = 400
 fontcharset fontcharset = ansi!
