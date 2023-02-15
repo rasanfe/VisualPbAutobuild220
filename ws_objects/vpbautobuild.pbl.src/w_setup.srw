@@ -28,7 +28,7 @@ end forward
 
 global type w_setup from window
 integer width = 3685
-integer height = 3124
+integer height = 2788
 boolean titlebar = true
 string title = "Setup"
 boolean controlmenu = true
@@ -478,7 +478,7 @@ end type
 type ddlb_filtro from dropdownlistbox within w_setup
 integer x = 352
 integer y = 328
-integer width = 622
+integer width = 782
 integer height = 592
 integer taborder = 10
 integer textsize = -10
@@ -490,7 +490,7 @@ string facename = "Tahoma"
 long textcolor = 33554432
 boolean sorted = false
 boolean vscrollbar = true
-string item[] = {"Todo","Setup"}
+string item[] = {"Todo","Proyectos Nativos","Proyectos PowerClient","Proyectos PowerServer","Setup"}
 borderstyle borderstyle = stylelowered!
 end type
 
@@ -500,15 +500,24 @@ Long ll_Row, ll_RowCOunt
 DataWindowChild dw_child
 
 Choose case index
-	case 1
+	case  1
 		ls_filtro = ""
 	case 2
-		li_projectType = -1
+		li_projectType = 0
 		ls_filtro = "project_type = "+string(li_projectType)
+	case 3
+		li_projectType = 1
+		ls_filtro = "project_type = "+string(li_projectType)
+	case 4
+		li_projectType = 2
+		ls_filtro = "project_type = "+string(li_projectType)
+	case 5
+		li_projectType = -1
+		ls_filtro = "project_type = "+string(li_projectType)	
 	case else
 		ls_JsonPath =  is_Path+"\" + ddlb_filtro.text
 		li_ProjectType = wf_load_json(ls_JsonPath)
-		ls_filtro = "project_type = "+string(li_projectType)
+		ls_filtro = "section = '"+ddlb_filtro.text+"'"
 end choose	
 
 dw_1.setfilter(ls_filtro)
@@ -538,7 +547,7 @@ type dw_1 from datawindow within w_setup
 integer x = 27
 integer y = 436
 integer width = 3607
-integer height = 2244
+integer height = 2004
 integer taborder = 10
 string title = "none"
 string dataobject = "dw_ini"
@@ -640,8 +649,8 @@ boolean focusrectangle = false
 end type
 
 type st_copyright from statictext within w_setup
-integer x = 1883
-integer y = 2920
+integer x = 2094
+integer y = 2612
 integer width = 1531
 integer height = 64
 integer textsize = -8
@@ -659,7 +668,7 @@ end type
 
 type pb_save from picturebutton within w_setup
 integer x = 1339
-integer y = 2728
+integer y = 2496
 integer width = 402
 integer height = 112
 integer textsize = -12
@@ -726,7 +735,7 @@ end type
 
 type pb_exit from picturebutton within w_setup
 integer x = 1879
-integer y = 2728
+integer y = 2496
 integer width = 402
 integer height = 108
 boolean bringtotop = true
