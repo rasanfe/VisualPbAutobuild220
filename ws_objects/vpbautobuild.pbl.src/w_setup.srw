@@ -66,6 +66,7 @@ public function integer wf_load_json (string as_jsonpath)
 public subroutine wf_load_ini ()
 public subroutine wf_fill_ini ()
 public function long wf_dddw_select (long al_row)
+public function any wf_get_ini_sections ()
 end prototypes
 
 public subroutine wf_save ();//Optamos Por crear Un Fichero Nevo Para poder Grabar con formatos (Un Salto de linea entre apartados) y para que no se graben claves en blanco (Clave="")
@@ -159,11 +160,13 @@ DESTROY lu_jsonObject
 RETURN li_ProjectType
 end function
 
-public subroutine wf_load_ini ();Long ll_Items,  ll_TotalItems, ll_row, ll_RowCount, ll_new
+public subroutine wf_load_ini ();Long ll_row, ll_RowCount, ll_new
 String ls_JsonFile, ls_JsonPath
 String ls_section, ls_key, ls_value
 Integer li_ProjectType
 String ls_ProjectControl
+String ls_Sections[]
+Integer li_Section, li_SectionCount
 
 dw_1.SetRedraw(False)
 
@@ -173,70 +176,69 @@ ds_Data =  CREATE DataStore
 ds_Data.DataObject="dw_iniparams"
 ll_RowCount =ds_Data.RowCount()
 
-//Insertamos los Parametros del Apartado Setup
-FOR ll_Row = 1 to ll_RowCount
-	ls_section = "setup"
-	ls_key=ds_Data.object.Key[ll_Row]
-	ls_value =  ProfileString(gs_SetupFile, ls_section, ls_key, "")
-	li_ProjectType =  -1	
-	ls_ProjectControl = ds_Data.Object.setup[ll_Row] 
-		
-  	IF ls_ProjectControl <> "S"  THEN CONTINUE
-	
-	IF ls_value  <> "" THEN
-		ll_new = dw_1.InsertRow(0)
-		dw_1.Object.id[ll_new] = ll_new
-		dw_1.Object.Section[ll_new] = ls_section
-		dw_1.Object.Key[ll_new] = ls_key
-		dw_1.Object.Value[ll_new] = ls_value 
-		dw_1.Object.Project_Type[ll_new] =li_ProjectType
-	END IF
-NEXT	
+//Leemos todos los apartados del Archivo Ini
+ls_Sections[] = wf_get_ini_Sections()
+li_SectionCount = UpperBound(ls_Sections[] )
 
- // Cargo todos los Json que hay en el direcciorio de la App
-lb_json.Reset()
-lb_json.DirList(is_Path+"\"+"*.json", 0 )
-
-ll_TotalItems = lb_json.TotalItems()
-
-//Insertamos los Paramentros de Cada Proyecto
-FOR ll_items = 1 to  ll_TotalItems
-	lb_json.SelectItem(ll_Items)
-	ls_JsonFile =lb_json.Text(ll_Items)
-	ls_JsonPath =  is_Path+"\" + ls_JsonFile
-	li_ProjectType = wf_load_json(ls_JsonPath)
-	
-	ddlb_filtro.InsertItem(ls_JsonFile, 0)
-	
-	ls_section = ls_JsonFile 
-	
-	FOR ll_Row = 1 to ll_RowCount
-		
-		CHOOSE CASE li_ProjectType
-			CASE 0
-				ls_ProjectControl = ds_Data.Object.nativecsapp[ll_Row] 
-			CASE 1
-				ls_ProjectControl = ds_Data.Object.powerclient[ll_Row] 
-			CASE 2
-				ls_ProjectControl = ds_Data.Object.powerserver[ll_Row] 
-		END CHOOSE
-				
-		
-		if   ls_ProjectControl = "S" then
-			
+//Recorremos Todas las secciónes del Archivo INI y solo Leeeremos las válidas con sus parámetros válidos.
+FOR li_Section =  1 To li_SectionCount
+	ls_section = ls_Sections[li_Section] 
+	IF ls_section = "setup" THEN
+		//Insertamos los Parametros del Apartado Setup
+		FOR ll_Row = 1 to ll_RowCount
 			ls_key=ds_Data.object.Key[ll_Row]
 			ls_value =  ProfileString(gs_SetupFile, ls_section, ls_key, "")
-		
+			li_ProjectType =  -1	
+			ls_ProjectControl = ds_Data.Object.setup[ll_Row] 
+				
+			IF ls_ProjectControl <> "S"  THEN CONTINUE
+			
 			IF ls_value  <> "" THEN
 				ll_new = dw_1.InsertRow(0)
 				dw_1.Object.id[ll_new] = ll_new
 				dw_1.Object.Section[ll_new] = ls_section
 				dw_1.Object.Key[ll_new] = ls_key
 				dw_1.Object.Value[ll_new] = ls_value 
-				dw_1.Object.Project_Type[ll_new] = li_ProjectType 
+				dw_1.Object.Project_Type[ll_new] =li_ProjectType
 			END IF
-		end if
-	NEXT	
+		NEXT	
+	END IF
+	
+	IF  right(lower(ls_section), 5)=".json" THEN
+		//Insertamos los Paramentros de Cada Proyecto
+		ls_JsonFile =ls_section
+		ls_JsonPath =  is_Path+"\" + ls_JsonFile
+		li_ProjectType = wf_load_json(ls_JsonPath)
+			
+		ddlb_filtro.InsertItem(ls_JsonFile, 0)
+		
+		FOR ll_Row = 1 to ll_RowCount
+		
+		CHOOSE CASE li_ProjectType
+			CASE -1
+				ls_ProjectControl = ds_Data.Object.setup[ll_Row] //Si no existe el Json no podré validar el tipo de Proyecto
+			CASE 0
+				ls_ProjectControl = ds_Data.Object.nativecsapp[ll_Row] 
+			CASE 1
+				ls_ProjectControl = ds_Data.Object.powerclient[ll_Row] 
+			CASE 2
+				ls_ProjectControl = ds_Data.Object.powerserver[ll_Row] 
+			END CHOOSE
+									
+			IF  ls_ProjectControl = "S" THEN
+				ls_key=ds_Data.object.Key[ll_Row]
+				ls_value =  ProfileString(gs_SetupFile, ls_section, ls_key, "")
+				IF ls_value  <> "" THEN
+					ll_new = dw_1.InsertRow(0)
+					dw_1.Object.id[ll_new] = ll_new
+					dw_1.Object.Section[ll_new] = ls_section
+					dw_1.Object.Key[ll_new] = ls_key
+					dw_1.Object.Value[ll_new] = ls_value 
+					dw_1.Object.Project_Type[ll_new] = li_ProjectType 
+				END IF
+			END IF
+		NEXT	
+	END IF	
 NEXT	
 
 dw_1.GroupCalc()
@@ -392,6 +394,31 @@ dw_child.SetSort("project_type a, key_order a")
 dw_child.Sort()
 
 RETURN dw_child.RowCount()
+end function
+
+public function any wf_get_ini_sections ();String ls_line
+Integer li_FileNum, li_rtn, li_indx, li_Sections
+String ls_section[]
+
+li_FileNum = FileOpen(gs_SetupFile, LineMode!, Read!, Shared!, Replace!, EncodingANSI!)
+
+IF li_FileNum > 0 THEN
+	DO WHILE  li_indx > -1
+		li_rtn = FileReadex(li_FileNum, ls_line)  
+			IF  li_rtn  = -1 THEN
+				EXIT
+			ELSE
+				li_indx ++  
+				IF left(trim(ls_line), 1)="[" THEN
+					li_Sections ++
+					ls_section[li_Sections] = mid(ls_line, 2, pos(ls_line, "]") - 2)
+				END IF	
+			END IF	
+	LOOP  
+	FileClose(li_FileNum)
+END IF
+
+RETURN ls_Section[]
 end function
 
 on w_setup.create
