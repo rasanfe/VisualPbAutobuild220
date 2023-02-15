@@ -70,6 +70,7 @@ ulong lul_handle
 Constant String ls_ExeFile="vpbautobuild.exe"
 Constant String ls_DeploymentPath="C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild"
 Boolean  lb_RunTime =FALSE
+String ls_version, ls_build, ls_revision
 
 rtn = GetEnvironment(env)
 
@@ -102,7 +103,11 @@ gs_logo = gs_appdir+"/logo.jpg"
 IF lb_RunTime = FALSE THEN
 	n_osversion in_osver
 	in_osver.of_GetFileVersionInfo(gs_appdir+"\"+ls_exeFile)
-	gs_version = ls_pbyear+"."+ mid(in_osver.FixedProductVersion, lastPos(in_osver.FixedProductVersion, ".") + 1, len(in_osver.FixedProductVersion) - lastPos(in_osver.FixedProductVersion, ".")) 
+	ls_version=in_osver.FixedProductVersion
+	ls_revision = mid(ls_version, lastPos(ls_version, ".") + 1, len(ls_version) - lastPos(ls_version, "."))
+	ls_build= gn_fn.of_replaceall(ls_version , "."+ls_revision, "")
+	ls_build = mid(ls_build, lastPos(ls_build, ".") + 1, len(ls_build) - lastPos(ls_build, "."))
+	gs_version =  ls_pbyear+"."+ls_build+"."+ls_revision
 END IF
 
 open(w_main)
