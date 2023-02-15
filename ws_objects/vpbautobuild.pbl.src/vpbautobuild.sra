@@ -16,6 +16,7 @@ boolean gb_auto=FALSE
 n_cst_functions gn_fn
 String gs_version, gs_platform, gs_logo
 end variables
+
 global type vpbautobuild from application
 string appname = "vpbautobuild"
 string themepath = "C:\Program Files (x86)\Appeon\PowerBuilder 22.0\IDE\theme"
@@ -93,7 +94,7 @@ if right(UPPER(ls_path), 7)="220.EXE" or right(UPPER(ls_path), 7)="X64.EXE" then
 	lb_RunTime = TRUE
 end if
 
-gs_appdir=left(ls_path, len(ls_path) - (len(ls_ExeFile) + 1))
+gs_appdir=left(ls_path, len(ls_path) - (len(ls_ExeFile) + 1))  
 
 gs_logo = gs_appdir+"/logo.jpg"
 

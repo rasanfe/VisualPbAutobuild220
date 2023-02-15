@@ -663,10 +663,16 @@ Integer li_ProductVersion1,  li_ProductVersion2,  li_ProductVersion3,  li_Produc
 String ls_RuntimeVersion, ls_DeployVersion
 
 li_FileNum = FileOpen(as_FilePathControl, LineMode!, Read!, LockRead!)
+
+IF li_FileNum < 0 THEN
+	gn_fn.of_error("FileOpen "+as_filepathcontrol+" Error")
+	RETURN FALSE
+END IF	
+
 li_indx = 0  
 IF is_project_type="PB Native" THEN
 	//Tomo como versión Product Version (PVN en fichero .srj)
-	do while li_indx > -1
+	DO WHILE li_indx > -1
 		li_rtn = FileReadex(li_FileNum, ls_line)  
 		IF  li_rtn  = -1 THEN
 			gn_fn.of_error("FileRead Error")
@@ -682,8 +688,9 @@ IF is_project_type="PB Native" THEN
 				EXIT
 			END IF	
 		END IF	
-	loop  
-	 FileClose(li_FileNum)
+	LOOP
+	
+	FileClose(li_FileNum)
 	
 	li_ProductVersion1 = integer( mid(ls_line, pos(ls_line, ":") + 1, pos(ls_line, ",") - pos(ls_line, ":")  - 1) )
 	
@@ -1140,7 +1147,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-13"), Time("11:43:22.000000"))
+datetime value = DateTime(Date("2023-02-15"), Time("09:56:21.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1164,7 +1171,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-13"), Time("11:43:22.000000"))
+datetime value = DateTime(Date("2023-02-15"), Time("09:56:21.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
