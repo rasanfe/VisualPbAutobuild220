@@ -27,14 +27,13 @@ end type
 end forward
 
 global type w_setup from window
-integer width = 3685
-integer height = 2788
+integer width = 3657
+integer height = 2764
 boolean titlebar = true
 string title = "Setup"
 boolean controlmenu = true
 boolean minbox = true
 boolean maxbox = true
-boolean resizable = true
 long backcolor = 67108864
 string icon = "AppIcon!"
 boolean center = true

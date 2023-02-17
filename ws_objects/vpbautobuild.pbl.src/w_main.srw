@@ -71,14 +71,13 @@ end type
 end forward
 
 global type w_main from window
-integer width = 2894
-integer height = 1788
+integer width = 2866
+integer height = 1764
 boolean titlebar = true
 string title = "Visual PbAutobuild220"
 boolean controlmenu = true
 boolean minbox = true
 boolean maxbox = true
-boolean resizable = true
 long backcolor = 67108864
 string icon = "AppIcon!"
 boolean center = true
@@ -932,8 +931,11 @@ ELSE
 END IF	
 end event
 
-event closequery;
-SetProfileString(gs_SetupFile, "setup", "json", is_JsonPath)
+event closequery;IF gb_auto=TRUE THEN 
+	SetProfileString(gs_SetupFile, "setup", "json", "")
+ELSE
+	SetProfileString(gs_SetupFile, "setup", "json", is_JsonPath)
+END IF	
 end event
 
 type pb_setup from picturebutton within w_main
@@ -1147,7 +1149,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-15"), Time("09:56:21.000000"))
+datetime value = DateTime(Date("2023-02-17"), Time("08:43:35.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1171,7 +1173,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-15"), Time("09:56:21.000000"))
+datetime value = DateTime(Date("2023-02-17"), Time("08:43:35.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
