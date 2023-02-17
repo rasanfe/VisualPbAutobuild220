@@ -196,7 +196,8 @@ if li_rc = 1 and li_ResponseStatusCode = 200 then
 	lblb_file += lblb_NextData
 	loop
 else
-	of_error("HttpClient Result Code: "+string(li_rc )+"~r~n"+"HttpClient Response Status Code: "+string(li_ResponseStatusCode))
+	of_error("HttpClient Result Code: "+string(li_rc ))
+	of_error("HttpClient Response Status Code: "+string(li_ResponseStatusCode))
 	RETURN ""
 end if
 
