@@ -65,7 +65,6 @@ public function integer wf_load_json (string as_jsonpath)
 public subroutine wf_load_ini ()
 public subroutine wf_fill_ini ()
 public function long wf_dddw_select (long al_row)
-public function any wf_get_ini_sections ()
 end prototypes
 
 public subroutine wf_save ();//Optamos Por crear Un Fichero Nevo Para poder Grabar con formatos (Un Salto de linea entre apartados) y para que no se graben claves en blanco (Clave="")
@@ -176,13 +175,16 @@ ds_Data.DataObject="dw_iniparams"
 ll_RowCount =ds_Data.RowCount()
 
 //Leemos todos los apartados del Archivo Ini
-ls_Sections[] = wf_get_ini_Sections()
+ls_Sections[] = gn_fn.of_get_ini_Sections()
 li_SectionCount = UpperBound(ls_Sections[] )
 
 //Recorremos Todas las secciónes del Archivo INI y solo Leeeremos las válidas con sus parámetros válidos.
 FOR li_Section =  1 To li_SectionCount
 	ls_section = ls_Sections[li_Section] 
 	IF ls_section = "setup" THEN
+		
+		ddlb_filtro.InsertItem(ls_section, 0)
+		
 		//Insertamos los Parametros del Apartado Setup
 		FOR ll_Row = 1 to ll_RowCount
 			ls_key=ds_Data.object.Key[ll_Row]
@@ -240,11 +242,7 @@ FOR li_Section =  1 To li_SectionCount
 	END IF	
 NEXT	
 
-dw_1.GroupCalc()
-dw_1.SetRedraw(True)
-ddlb_filtro.SelectItem(1)
-
-IF dw_1.RowCount() = 0 THEN wf_fill_ini()
+wf_fill_ini()
 end subroutine
 
 public subroutine wf_fill_ini ();Long ll_Items,  ll_TotalItems, ll_row, ll_RowCount, ll_new
@@ -273,6 +271,11 @@ FOR ll_Row = 1 to ll_RowCount
 	ls_key=ds_Data.object.Key[ll_Row]
 	ls_value =  ""
 	li_ProjectType = -1
+	
+	//Si ya existe el Proyecto en el Archivo .ini No Insertamos nada
+	IF ddlb_filtro.FindItem(ls_Section, 0) > 0 THEN CONTINUE
+	
+	ddlb_filtro.InsertItem(ls_Section, 0)
 		
 	IF ds_Data.Object.setup[ll_Row]  <> "S"  THEN CONTINUE
 	
@@ -297,6 +300,8 @@ FOR ll_items = 1 to  ll_TotalItems
 	ls_JsonFile =lb_json.Text(ll_Items)
 	ls_JsonPath =  is_Path+"\" + ls_JsonFile
 	li_ProjectType = wf_load_json(ls_JsonPath)
+	
+	IF ddlb_filtro.FindItem(ls_JsonFile, 0) > 0 THEN CONTINUE
 	
 	ddlb_filtro.InsertItem(ls_JsonFile, 0)
 	
@@ -393,31 +398,6 @@ dw_child.SetSort("project_type a, key_order a")
 dw_child.Sort()
 
 RETURN dw_child.RowCount()
-end function
-
-public function any wf_get_ini_sections ();String ls_line
-Integer li_FileNum, li_rtn, li_indx, li_Sections
-String ls_section[]
-
-li_FileNum = FileOpen(gs_SetupFile, LineMode!, Read!, Shared!, Replace!, EncodingANSI!)
-
-IF li_FileNum > 0 THEN
-	DO WHILE  li_indx > -1
-		li_rtn = FileReadex(li_FileNum, ls_line)  
-			IF  li_rtn  = -1 THEN
-				EXIT
-			ELSE
-				li_indx ++  
-				IF left(trim(ls_line), 1)="[" THEN
-					li_Sections ++
-					ls_section[li_Sections] = mid(ls_line, 2, pos(ls_line, "]") - 2)
-				END IF	
-			END IF	
-	LOOP  
-	FileClose(li_FileNum)
-END IF
-
-RETURN ls_Section[]
 end function
 
 on w_setup.create

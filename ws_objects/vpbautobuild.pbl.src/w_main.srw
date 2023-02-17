@@ -294,12 +294,21 @@ end function
 private subroutine wf_build ();Boolean lb_rtn
 String  ls_script, ls_result, ls_error, ls_JWTClassPath, ls_PowerServerPath, ls_PBNativePath, ls_pbAutobuildPath, ls_TokenURL
 String ls_iniFilePath,  ls_IniUsersKey,  ls_IniTokenKey,  ls_IniConnectionKey
+String ls_Sections[]
 
 SetPointer(HourGlass!)
 
 IF is_JsonPath="" THEN RETURN
 
 IF NOT wf_save_json() THEN
+	RETURN
+END IF	
+
+//Comprobamos Configuración Archivo .ini
+ls_Sections[] = gn_fn.of_get_ini_Sections()
+
+IF gn_fn.of_iin(is_JsonFile, ls_Sections[]) = FALSE THEN
+	gn_fn.of_error("Proyecto "+is_JsonFile+" no configurado en Setup.ini !" )
 	RETURN
 END IF	
 
@@ -1149,7 +1158,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-17"), Time("08:43:35.000000"))
+datetime value = DateTime(Date("2023-02-17"), Time("09:30:08.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1173,7 +1182,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-17"), Time("08:43:35.000000"))
+datetime value = DateTime(Date("2023-02-17"), Time("09:30:08.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!

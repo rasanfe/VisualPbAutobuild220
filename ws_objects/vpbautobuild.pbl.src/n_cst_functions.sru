@@ -22,6 +22,8 @@ public function string of_replaceall (string as_source, string as_replaced, stri
 public function string of_decodebase64url (string as_value)
 public function string of_download_file (string as_personaltoken, string as_url, string as_filepath)
 public function string of_profilestring (string as_section, string as_key, string as_default)
+public function boolean of_iin (any aa_value, any aa_check[])
+public function any of_get_ini_sections ()
 end prototypes
 
 public function boolean of_run_bat (string as_script, string as_filename);Boolean lb_rtn
@@ -222,6 +224,53 @@ String ls_value
 ls_value = ProfileString(gs_SetupFile, as_section, as_key, ProfileString(gs_SetupFile, "setup", as_key, as_default))
 
 RETURN ls_value
+end function
+
+public function boolean of_iin (any aa_value, any aa_check[]);Integer		li_loop																					// Work Var
+Integer		li_max																						// Work Var
+String			ls_type																					// Work Var
+Boolean		lb_rc = FALSE																			// Work Var
+ls_type		=	ClassName (aa_value)															// Get 1st arg's data type
+li_max			=	UpperBound (aa_check[])														// Get # of 2nd Arg's.
+
+FOR  li_loop		=	1  to  li_max																		// Loop thru data
+	IF  ClassName (aa_check[li_loop] )  <>  ls_type THEN								// Data type match?
+		Continue																								// NO=>Continue the loop!
+	ELSE
+		IF  aa_check[li_loop]	=	aa_value THEN													// YES=>Values Equal?
+			lb_rc	=	 TRUE																					// YES=>Set RC
+			EXIT																									// Exit the Loop!
+		END IF
+	END IF
+NEXT
+
+RETURN	lb_rc 																						// RETURN RC to caller
+
+end function
+
+public function any of_get_ini_sections ();String ls_line
+Integer li_FileNum, li_rtn, li_indx, li_Sections
+String ls_section[]
+
+li_FileNum = FileOpen(gs_SetupFile, LineMode!, Read!, Shared!, Replace!, EncodingANSI!)
+
+IF li_FileNum > 0 THEN
+	DO WHILE  li_indx > -1
+		li_rtn = FileReadex(li_FileNum, ls_line)  
+			IF  li_rtn  = -1 THEN
+				EXIT
+			ELSE
+				li_indx ++  
+				IF left(trim(ls_line), 1)="[" THEN
+					li_Sections ++
+					ls_section[li_Sections] = mid(ls_line, 2, pos(ls_line, "]") - 2)
+				END IF	
+			END IF	
+	LOOP  
+	FileClose(li_FileNum)
+END IF
+
+RETURN ls_Section[]
 end function
 
 on n_cst_functions.create
