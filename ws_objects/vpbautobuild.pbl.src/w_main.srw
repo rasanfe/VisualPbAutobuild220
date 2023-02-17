@@ -308,8 +308,7 @@ END IF
 ls_Sections[] = gn_fn.of_get_ini_Sections()
 
 IF gn_fn.of_iin(is_JsonFile, ls_Sections[]) = FALSE THEN
-	gn_fn.of_error("Proyecto "+is_JsonFile+" no configurado en Setup.ini !" )
-	RETURN
+	gn_fn.of_log("Project ["+is_JsonFile+"] section not configured in Setup.ini. It continues with [setup] section values." )
 END IF	
 
 //Crear Bat para copiar INI con credenciales API en Proyectos PowerServer / Datos Conexion Base de Datos en Proyectos PowerClient y Nativos
@@ -381,57 +380,61 @@ gn_fn.of_log("End "+ls_pbAutobuildPath)
 //2 -Revisamos Opciones en Proyectos PowerServer
 IF is_project_type = "PowerServer" THEN
 
-	//2.1.1- Detener el Servicio de la Api
-	ls_script = "%windir%\system32\inetsrv\appcmd stop site /site.name:"+is_SolutionName
-	
-	lb_rtn  = gn_fn.of_run_bat(ls_script, "stop_api.bat")
-
-	IF lb_rtn = FALSE THEN	RETURN
-	
-	gn_fn.of_log("Stop Site Name: "+is_SolutionName)
-	//2.1.2- Borrar la Carpera del sitio Web
-		
 	ls_PowerServerPath=gn_fn.of_ProfileString( is_JsonFile, "PowerServerPath", "")
 	
-	if right(ls_PowerServerPath, 1) <> "\" then  ls_PowerServerPath += "\" 
-	ls_script = "RMDIR /s /q "+char(34)+ls_PowerServerPath +lower(is_SolutionName)+char(34)
-	
-	lb_rtn  = gn_fn.of_run_bat(ls_script, "delete_repos.bat")
-
-	IF lb_rtn = FALSE THEN	RETURN
-	
-	gn_fn.of_log("Delete Site Path: "+ls_PowerServerPath +lower(is_SolutionName))
-	
-	//2.1.3- Copiar Archivo DefaultUserStore.cs
-	IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
+	IF ls_PowerServerPath = "" THEN
+		gn_fn.of_error("PowerServerPath param empty. PowerServer API is not published." )
+	ELSE
+		//2.1.1- Detener el Servicio de la Api
+		ls_script = "%windir%\system32\inetsrv\appcmd stop site /site.name:"+is_SolutionName
 		
-		ls_script = "copy /y "+char(34)+gs_appdir+"\"+is_JWTClassTemplateName+char(34)+ " "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName+char(34) 
-				
-		lb_rtn  = gn_fn.of_run_bat(ls_script, "copy_class.bat")
+		lb_rtn  = gn_fn.of_run_bat(ls_script, "stop_api.bat")
 	
 		IF lb_rtn = FALSE THEN	RETURN
 		
-		//Inyecto las credenciales de Archivo Ini de la app y la info de los Claims de mi archivo Setup.ini
-		ls_JWTClassPath = gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName
-		wf_modify_class(ls_JWTClassPath)
-		gn_fn.of_log("Add JWT Class Template: "+is_JWTClassTemplateName)
-	END IF
-	//2.1.4- Publicar Sitio Web
-	ls_script = "dotnet.exe publish "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\ServerAPIs.csproj"+char(34)+" -c release -o "+ls_PowerServerPath+lower(is_SolutionName)
+		gn_fn.of_log("Stop Site Name: "+is_SolutionName)
+		//2.1.2- Borrar la Carpera del sitio Web
+			
+		if right(ls_PowerServerPath, 1) <> "\" then  ls_PowerServerPath += "\" 
+		ls_script = "RMDIR /s /q "+char(34)+ls_PowerServerPath +lower(is_SolutionName)+char(34)
+		
+		lb_rtn  = gn_fn.of_run_bat(ls_script, "delete_repos.bat")
 	
-	lb_rtn  = gn_fn.of_run_bat(ls_script, "publish_api.bat")
-
-	IF lb_rtn = FALSE THEN	RETURN
+		IF lb_rtn = FALSE THEN	RETURN
+		
+		gn_fn.of_log("Delete Site Path: "+ls_PowerServerPath +lower(is_SolutionName))
+		
+		//2.1.3- Copiar Archivo DefaultUserStore.cs
+		IF is_AuthTemplate = "IncludeCustomJWTServer" THEN
+			
+			ls_script = "copy /y "+char(34)+gs_appdir+"\"+is_JWTClassTemplateName+char(34)+ " "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName+char(34) 
+					
+			lb_rtn  = gn_fn.of_run_bat(ls_script, "copy_class.bat")
+		
+			IF lb_rtn = FALSE THEN	RETURN
+			
+			//Inyecto las credenciales de Archivo Ini de la app y la info de los Claims de mi archivo Setup.ini
+			ls_JWTClassPath = gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName
+			wf_modify_class(ls_JWTClassPath)
+			gn_fn.of_log("Add JWT Class Template: "+is_JWTClassTemplateName)
+		END IF
+		//2.1.4- Publicar Sitio Web
+		ls_script = "dotnet.exe publish "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\ServerAPIs.csproj"+char(34)+" -c release -o "+ls_PowerServerPath+lower(is_SolutionName)
+		
+		lb_rtn  = gn_fn.of_run_bat(ls_script, "publish_api.bat")
 	
-	gn_fn.of_log("Publish Site Name: "+is_SolutionName)
-	//2.1.5- Reactivar el Servicio de la Api
-	ls_script = "%windir%\system32\inetsrv\appcmd start site /site.name:"+is_SolutionName
+		IF lb_rtn = FALSE THEN	RETURN
+		
+		gn_fn.of_log("Publish Site Name: "+is_SolutionName)
+		//2.1.5- Reactivar el Servicio de la Api
+		ls_script = "%windir%\system32\inetsrv\appcmd start site /site.name:"+is_SolutionName
+		
+		lb_rtn  = gn_fn.of_run_bat(ls_script, "start_api.bat")
 	
-	lb_rtn  = gn_fn.of_run_bat(ls_script, "start_api.bat")
-
-	IF lb_rtn = FALSE THEN	RETURN
-	
-		gn_fn.of_log("Start Site Name: "+is_SolutionName)
+		IF lb_rtn = FALSE THEN	RETURN
+		
+			gn_fn.of_log("Start Site Name: "+is_SolutionName)
+	END IF		
 	 //2.1.6- Borrar el archivo Copiarini.bat
 	 IF  is_iniFile <> "" AND is_AuthTemplate = "IncludeCustomJWTServer" THEN
 		Filedelete(gs_appdir+"\copiarini.bat")
@@ -1158,7 +1161,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-17"), Time("09:30:08.000000"))
+datetime value = DateTime(Date("2023-02-17"), Time("16:43:15.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1182,7 +1185,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-17"), Time("09:30:08.000000"))
+datetime value = DateTime(Date("2023-02-17"), Time("16:43:15.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
