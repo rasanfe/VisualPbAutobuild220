@@ -267,11 +267,15 @@ try
 		//Añadimos comando para copiar INI de configuracion JWT de la API no subido a repositorio por seguridad.
 		IF is_iniFile <> "" AND ls_AuthTemplate = "IncludeCustomJWTServer" THEN
 			lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value(gs_appdir+"\copiarini.bat")	
+		ELSE
+			lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value("")	
 		END IF
 	ELSE
 		//Añadimos en Proyectos Nativos C/S y PowerClient archivo de configuración con conexion a Base de Datos
 		IF is_iniFile <> "" THEN
 			lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value(gs_appdir+"\copiarini.bat")	
+		ELSE
+			lu_jsonObject.of_get_node("BuildPlan").of_get_node("SourceControl").of_get_node("PostCommand").of_set_value("")	
 		END IF
 	END IF	
 	
@@ -1161,7 +1165,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-17"), Time("16:43:15.000000"))
+datetime value = DateTime(Date("2023-02-23"), Time("08:32:09.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1185,7 +1189,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-17"), Time("16:43:15.000000"))
+datetime value = DateTime(Date("2023-02-23"), Time("08:32:09.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
