@@ -304,6 +304,9 @@ SetPointer(HourGlass!)
 
 IF is_JsonPath="" THEN RETURN
 
+//Crear Bat para copiar INI con credenciales API en Proyectos PowerServer / Datos Conexion Base de Datos en Proyectos PowerClient y Nativos
+is_iniFile = gn_fn.of_ProfileString( is_JsonFile, "IniFie", "")
+
 IF NOT wf_save_json() THEN
 	RETURN
 END IF	
@@ -314,9 +317,6 @@ ls_Sections[] = gn_fn.of_get_ini_Sections()
 IF gn_fn.of_iin(is_JsonFile, ls_Sections[]) = FALSE THEN
 	gn_fn.of_log("Project ["+is_JsonFile+"] section not configured in Setup.ini. It continues with [setup] section values." )
 END IF	
-
-//Crear Bat para copiar INI con credenciales API en Proyectos PowerServer / Datos Conexion Base de Datos en Proyectos PowerClient y Nativos
-is_iniFile = gn_fn.of_ProfileString( is_JsonFile, "IniFie", "")
 
 IF is_iniFile <> "" THEN
 	IF is_project_type = "PowerServer" THEN
@@ -1165,7 +1165,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-23"), Time("08:32:09.000000"))
+datetime value = DateTime(Date("2023-03-16"), Time("11:46:24.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1189,7 +1189,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-02-23"), Time("08:32:09.000000"))
+datetime value = DateTime(Date("2023-03-16"), Time("11:46:24.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
