@@ -19,11 +19,11 @@ public subroutine of_copy_pbautobuild_logs (string as_pbautobuillog, string as_m
 public subroutine of_log (string as_text)
 public subroutine of_error (string as_text)
 public function string of_replaceall (string as_source, string as_replaced, string as_new)
-public function string of_decodebase64url (string as_value)
 public function string of_download_file (string as_personaltoken, string as_url, string as_filepath)
 public function string of_profilestring (string as_section, string as_key, string as_default)
 public function boolean of_iin (any aa_value, any aa_check[])
 public function any of_get_ini_sections ()
+public function string of_decrypt (string as_source)
 end prototypes
 
 public function boolean of_run_bat (string as_script, string as_filename);Boolean lb_rtn
@@ -147,28 +147,6 @@ LOOP
 RETURN as_source  
 end function
 
-public function string of_decodebase64url (string as_value);Coderobject lnv_coderobject
-Blob lb_value
-ULong lul_len
-String ls_decoded
-Encoding lEncoding = EncodingUTF8!
-
-//Decode as_value
-lnv_coderobject = Create coderobject
-
-// allocate decoded buffer
-lul_len = Len(as_value)
-lb_value = Blob(Space(lul_len))
-
-lb_value = lnv_coderobject.base64urldecode(as_value)
-
-ls_decoded = String(BlobMid(lb_value, 1, lul_len), lEncoding)
-
-Destroy lnv_coderobject
-
-RETURN ls_decoded
-end function
-
 public function string of_download_file (string as_personaltoken, string as_url, string as_filepath);Integer li_rc, li_ResponseStatusCode, li_FileNum
 Blob lblb_file, lblb_NextData
 HttpClient lnv_HttpClient 
@@ -272,6 +250,16 @@ IF li_FileNum > 0 THEN
 END IF
 
 RETURN ls_Section[]
+end function
+
+public function string of_decrypt (string as_source);String ls_decrypt
+n_cst_security ln_seg
+
+ln_seg =  CREATE n_cst_security
+ls_decrypt = ln_seg.of_decrypt(as_source)
+DESTROY ln_Seg
+
+RETURN ls_decrypt
 end function
 
 on n_cst_functions.create

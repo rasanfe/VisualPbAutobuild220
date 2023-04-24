@@ -5,10 +5,10 @@ COM:RSRSYSTEM
 DES:Appeon Power Builder 2022 Product File 64Bits
 CPY:Ramón San Félix Ramón
 PRD:VpbAutobuild220
-PVS:2022.1900.3.8
-PVN:2022,1900,3,8
-FVS:2022.1900.3.8
-FVN:2022,1900,3,8
+PVS:2022.1900.3.9
+PVN:2022,1900,3,9
+FVS:2022.1900.3.9
+FVN:2022,1900,3,9
 MAN:0,asInvoker,0
 PBD:vpbautobuild.pbl,,1
 OBJ:C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild\vpbautobuild.pbl,w_main,w
@@ -18,4 +18,5 @@ OBJ:C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild\vpbautobuild.pbl,vpbautobu
 OBJ:C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild\vpbautobuild.pbl,dw_ini,d
 OBJ:C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild\vpbautobuild.pbl,w_setup,w
 OBJ:C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild\vpbautobuild.pbl,n_runandwait,u
+OBJ:C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild\vpbautobuild.pbl,n_cst_security,u
 OBJ:C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild\vpbautobuild.pbl,n_osversion,u

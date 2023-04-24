@@ -155,7 +155,7 @@ ls_Emp_Input= String(lbl_data, EncodingANSI!)
 SetNull(lbl_data)
 
 ls_UserName = gn_fn.of_ProfileString( is_JsonFile, "UserName", "")
-ls_UserPass =  gn_fn.of_decodebase64url(gn_fn.of_ProfileString( is_JsonFile, "UserPass", ""))
+ls_UserPass =  gn_fn.of_decrypt(gn_fn.of_ProfileString( is_JsonFile, "UserPass", ""))
 
 //La información del Claim se puede guardar en general para todos los proyectos o especificar indiviualmente.
 ls_Scope = gn_fn.of_ProfileString( is_JsonFile, "Scope", "")
@@ -335,6 +335,7 @@ IF is_iniFile <> "" THEN
 			SetProfileString ( ls_iniFilePath,  ls_IniUsersKey , "UserPass",  gn_fn.of_ProfileString( is_JsonFile, "UserPass", ""))
 			ls_TokenURL = is_WebAPIURL +"/connect/token"
 			SetProfileString ( ls_iniFilePath,  ls_IniTokenKey , "TokenURL",  ls_TokenURL)
+			SetProfileString ( ls_iniFilePath,  ls_IniTokenKey , "SecurityToken",   gn_fn.of_ProfileString( is_JsonFile, "SecurityToken", ""))
 			ls_script = "copy /y "+char(34)+ls_iniFilePath+char(34)+ " "+char(34)+gs_appdir+"\src\CloudSetting.ini"+char(34) 
 			lb_rtn  = gn_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
 		END IF	
@@ -353,6 +354,7 @@ IF is_iniFile <> "" THEN
 			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "LogId",  gn_fn.of_ProfileString( is_JsonFile, "LogId", ""))
 			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "AutoCommit",  gn_fn.of_ProfileString( is_JsonFile, "AutoCommit", ""))
 			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "DBParm",  gn_fn.of_ProfileString( is_JsonFile, "DBParm", ""))
+			SetProfileString ( ls_iniFilePath, ls_IniConnectionKey, "SecurityToken",  gn_fn.of_ProfileString( is_JsonFile, "SecurityToken", ""))
 			ls_script = "copy /y "+char(34)+ls_iniFilePath+char(34)+ " "+char(34)+gs_appdir+"\src\"+is_iniFile+char(34) 
 			lb_rtn  = gn_fn.of_create_bat(ls_script,  gs_appdir+"\copiarini.bat")
 		END IF
@@ -617,7 +619,7 @@ ls_GitBranch = gn_fn.of_ProfileString( is_JsonFile, "GitBranch", "main")
 ls_Pbl = gn_fn.of_ProfileString( is_JsonFile, "Pbl" , "")
 
 IF lower(ls_ProfileVisibility) = "private" THEN
-	ls_PersonalToken = gn_fn.of_decodebase64url(gn_fn.of_ProfileString( is_JsonFile, "PersonalToken", ""))
+	ls_PersonalToken = gn_fn.of_decrypt(gn_fn.of_ProfileString( is_JsonFile, "PersonalToken", ""))
 ELSE
 	ls_PersonalToken = ""
 END IF
@@ -651,7 +653,7 @@ ls_GitHubRepository = gn_fn.of_ProfileString( is_JsonFile, "GitHubRepository", "
 ls_GitBranch = gn_fn.of_ProfileString( is_JsonFile, "GitBranch", "main")
 
 IF lower(ls_ProfileVisibility) = "private" THEN
-	ls_PersonalToken = gn_fn.of_decodebase64url(gn_fn.of_ProfileString( is_JsonFile, "PersonalToken", ""))
+	ls_PersonalToken = gn_fn.of_decrypt(gn_fn.of_ProfileString( is_JsonFile, "PersonalToken", ""))
 ELSE
 	ls_PersonalToken = ""
 END IF
@@ -1165,7 +1167,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-03-16"), Time("11:46:24.000000"))
+datetime value = DateTime(Date("2023-04-24"), Time("17:01:57.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1189,7 +1191,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-03-16"), Time("11:46:24.000000"))
+datetime value = DateTime(Date("2023-04-24"), Time("17:01:57.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
