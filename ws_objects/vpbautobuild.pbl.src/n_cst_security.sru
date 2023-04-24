@@ -115,7 +115,7 @@ JsonParser lnv_JsonParser
 Long ll_RootObject, ll_item
 
 //Leemos el Token del Archivo INI
-ls_token =ProfileString("Setting.ini", "Setup", "SecurityToken", "")
+ls_token =ProfileString("setup.ini", "Setup", "SecurityToken", "")
 
 ls_key =  "vpautobuild"
 ls_key = ls_key + fill("*", 16 - len(ls_key))
