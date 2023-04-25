@@ -754,11 +754,15 @@ String ls_Emp_Input
 String ls_classname
 String ls_UserName, ls_UserPass, ls_Scope, ls_Name, ls_GivenName, ls_FamilyName, ls_WebSite, ls_Email, ls_EmailVerified
 Encoding lEncoding = EncodingUTF8!
+String ls_AppSecurityToken, ls_SecurityToken, ls_MasterKey, ls_MasterIV, ls_AppMasterKey, ls_AppMasterIV,  ls_Key, ls_IV
+n_cst_security ln_seg
 
 IF NOT FileExists(as_ClassFilePath) THEN
 	gn_fn.of_error("Class File ["+as_classfilepath+"] Not Exists. Please Download From VPbAutobuild Git-Hub Repository." )
 	RETURN FALSE
 END IF	
+
+ln_seg =  CREATE n_cst_security
 	
 li_FileNum = FileOpen(as_ClassFilePath,  TextMode!)
 FileReadEx(li_FileNum,lbl_data)
@@ -769,7 +773,33 @@ ls_Emp_Input= String(lbl_data, lEncoding)
 SetNull(lbl_data)
 
 ls_UserName = gn_fn.of_ProfileString( is_JsonFile, "UserName", "")
-ls_UserPass =  gn_fn.of_decrypt(gn_fn.of_ProfileString( is_JsonFile, "UserPass", ""))
+
+//Necesitamos El Token Maestro de la App PowerServer para poder Desencryptar el Password de la Clase DefalutUserStore
+ls_AppSecurityToken = gn_fn.of_ProfileString( is_JsonFile, "AppSecurityToken", "")
+
+//Necesito las Claves de PbAutoubuild Para desencriptar Token De PowerServer con las sus Claves Mestras 
+ln_seg.of_get_masterkeys(REF ls_AppMasterKey, REF ls_AppMasterIV)
+
+//Pbtengo las Claves Maestras de la App PowerServer
+IF  NOT ln_seg.of_get_token(ls_AppSecurityToken, ls_AppMasterKey, ls_AppMasterIV, REF ls_MasterKey, REF ls_MasterIV) THEN
+	gn_fn.of_error("Fail to get AppSecurityToken from Project "+ is_JsonFile+"!")
+	RETURN FALSE
+END IF	
+
+//Obtenemos el SecurityToken de la App PowerServer.
+ls_SecurityToken = gn_fn.of_ProfileString( is_JsonFile, "SecurityToken", "")
+
+//Recuperamos las Claves de Desencriptado de la App PowerSever
+IF  NOT ln_seg.of_get_token(ls_SecurityToken, ls_MasterKey, ls_MasterIV, REF ls_Key, REF ls_IV) THEN
+	gn_fn.of_error("Fail to get SecurityToken from Project "+ is_JsonFile+"!")
+	RETURN FALSE
+END IF	
+
+//Obtengo la Clave JWT de para la Clase DefaultUserStore.cs
+ls_UserPass = gn_fn.of_ProfileString( is_JsonFile, "UserPass", "")
+
+//Desencripto la Clave para poderla Inyectar en la clase DefaultUserStore.cs
+ls_UserPass =  ln_Seg.of_decrypt(ls_UserPass, ls_Key, ls_IV)
 
 //La información del Claim se puede guardar en general para todos los proyectos o especificar indiviualmente.
 ls_Scope = gn_fn.of_ProfileString( is_JsonFile, "Scope", "")
@@ -800,6 +830,7 @@ li_rtn = FileWriteEx(li_FileNum, lbl_data)
 
 FileClose(li_FileNum)
 
+DESTROY ln_Seg
 RETURN TRUE
 end function
 
@@ -1178,7 +1209,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-04-25"), Time("10:29:35.000000"))
+datetime value = DateTime(Date("2023-04-25"), Time("12:35:29.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1202,7 +1233,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-04-25"), Time("10:29:35.000000"))
+datetime value = DateTime(Date("2023-04-25"), Time("12:35:29.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
