@@ -131,61 +131,14 @@ String is_JsonFile, is_JsonPath
 end variables
 
 forward prototypes
-private subroutine wf_modify_class (string as_classfilepath)
 private function boolean wf_save_json ()
 private subroutine wf_build ()
 private function boolean wf_load_json ()
 private function string wf_download_version_control ()
 public function string wf_download_inifile ()
 private function boolean wf_load_version (string as_filepathcontrol)
+private function boolean wf_modify_class (string as_classfilepath)
 end prototypes
-
-private subroutine wf_modify_class (string as_classfilepath);integer li_FileNum, li_rtn
-blob lbl_data
-String ls_Emp_Input
-String ls_classname
-String ls_UserName, ls_UserPass, ls_Scope, ls_Name, ls_GivenName, ls_FamilyName, ls_WebSite, ls_Email, ls_EmailVerified
-
-li_FileNum = FileOpen(as_ClassFilePath,  TextMode!)
-FileReadEx(li_FileNum,lbl_data)
-FileClose(li_FileNum)
-
-ls_Emp_Input= String(lbl_data, EncodingANSI!)
-
-SetNull(lbl_data)
-
-ls_UserName = gn_fn.of_ProfileString( is_JsonFile, "UserName", "")
-ls_UserPass =  gn_fn.of_decrypt(gn_fn.of_ProfileString( is_JsonFile, "UserPass", ""))
-
-//La información del Claim se puede guardar en general para todos los proyectos o especificar indiviualmente.
-ls_Scope = gn_fn.of_ProfileString( is_JsonFile, "Scope", "")
-ls_Name =  gn_fn.of_ProfileString( is_JsonFile, "Name","")
-ls_GivenName  = gn_fn.of_ProfileString( is_JsonFile, "GivenName", "")
-ls_FamilyName =  gn_fn.of_ProfileString( is_JsonFile, "FamilyName", "")
-ls_WebSite =  gn_fn.of_ProfileString( is_JsonFile, "WebSite", "")
-ls_Email  =  gn_fn.of_ProfileString( is_JsonFile, "Email", "")
-ls_EmailVerified =  gn_fn.of_ProfileString( is_JsonFile, "EmailVerified","")
-
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"UserName"+char(34), char(34)+ls_UserName+char(34))
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"UserPass"+char(34), char(34)+ls_UserPass+char(34))
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Scope"+char(34), char(34)+ls_Scope+char(34))
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Name"+char(34), char(34)+ls_Name+char(34))
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"GivenName"+char(34), char(34)+ls_GivenName+char(34))
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"FamilyName"+char(34), char(34)+ls_FamilyName+char(34))
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"WebSite"+char(34), char(34)+ls_WebSite+char(34))
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Email"+char(34), char(34)+ls_Email+char(34))
-ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"EmailVerified"+char(34), char(34)+ls_EmailVerified+char(34))
-
-FileDelete(as_ClassFilePath)
-
-li_FileNum = FileOpen(as_ClassFilePath, StreamMode!, Write!)
-
-lbl_data = Blob(ls_Emp_Input, EncodingANSI!)
-
-li_rtn = FileWriteEx(li_FileNum, lbl_data)
-
-FileClose(li_FileNum)
-end subroutine
 
 private function boolean wf_save_json ();String ls_ProductVersion1, ls_ProductVersion2, ls_ProductVersion3, ls_ProductVersion4
 Datetime ldt_AvailabeTime, ldt_ExpirationTime
@@ -421,8 +374,11 @@ IF is_project_type = "PowerServer" THEN
 			
 			//Inyecto las credenciales de Archivo Ini de la app y la info de los Claims de mi archivo Setup.ini
 			ls_JWTClassPath = gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\Authentication\JWT\Impl\"+is_JWTClassTemplateName
-			wf_modify_class(ls_JWTClassPath)
 			gn_fn.of_log("Add JWT Class Template: "+is_JWTClassTemplateName)
+			lb_rtn  =  wf_modify_class(ls_JWTClassPath)
+			
+			IF lb_rtn = FALSE THEN	RETURN
+		
 		END IF
 		//2.1.4- Publicar Sitio Web
 		ls_script = "dotnet.exe publish "+char(34)+gs_appdir+"\src\repos\"+lower(is_SolutionName)+"\ServerAPIs\ServerAPIs.csproj"+char(34)+" -c release -o "+ls_PowerServerPath+lower(is_SolutionName)
@@ -790,6 +746,61 @@ ELSE
 	gn_fn.of_log("GitHub Version: "+ls_DeployVersion+" "+"Local Version:"+is_DeploymentVersion+" Nothing to update.")
 	RETURN FALSE
 END IF
+end function
+
+private function boolean wf_modify_class (string as_classfilepath);integer li_FileNum, li_rtn
+blob lbl_data
+String ls_Emp_Input
+String ls_classname
+String ls_UserName, ls_UserPass, ls_Scope, ls_Name, ls_GivenName, ls_FamilyName, ls_WebSite, ls_Email, ls_EmailVerified
+Encoding lEncoding = EncodingUTF8!
+
+IF NOT FileExists(as_ClassFilePath) THEN
+	gn_fn.of_error("Class File ["+as_classfilepath+"] Not Exists. Please Download From VPbAutobuild Git-Hub Repository." )
+	RETURN FALSE
+END IF	
+	
+li_FileNum = FileOpen(as_ClassFilePath,  TextMode!)
+FileReadEx(li_FileNum,lbl_data)
+FileClose(li_FileNum)
+
+ls_Emp_Input= String(lbl_data, lEncoding)
+
+SetNull(lbl_data)
+
+ls_UserName = gn_fn.of_ProfileString( is_JsonFile, "UserName", "")
+ls_UserPass =  gn_fn.of_decrypt(gn_fn.of_ProfileString( is_JsonFile, "UserPass", ""))
+
+//La información del Claim se puede guardar en general para todos los proyectos o especificar indiviualmente.
+ls_Scope = gn_fn.of_ProfileString( is_JsonFile, "Scope", "")
+ls_Name =  gn_fn.of_ProfileString( is_JsonFile, "Name","")
+ls_GivenName  = gn_fn.of_ProfileString( is_JsonFile, "GivenName", "")
+ls_FamilyName =  gn_fn.of_ProfileString( is_JsonFile, "FamilyName", "")
+ls_WebSite =  gn_fn.of_ProfileString( is_JsonFile, "WebSite", "")
+ls_Email  =  gn_fn.of_ProfileString( is_JsonFile, "Email", "")
+ls_EmailVerified =  gn_fn.of_ProfileString( is_JsonFile, "EmailVerified","")
+
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"UserName"+char(34), char(34)+ls_UserName+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"UserPass"+char(34), char(34)+ls_UserPass+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Scope"+char(34), char(34)+ls_Scope+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Name"+char(34), char(34)+ls_Name+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"GivenName"+char(34), char(34)+ls_GivenName+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"FamilyName"+char(34), char(34)+ls_FamilyName+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"WebSite"+char(34), char(34)+ls_WebSite+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"Email"+char(34), char(34)+ls_Email+char(34))
+ls_Emp_Input = gn_fn.of_replaceall(ls_Emp_Input, char(34)+"EmailVerified"+char(34), char(34)+ls_EmailVerified+char(34))
+
+//FileDelete(as_ClassFilePath)
+
+li_FileNum = FileOpen(as_ClassFilePath, StreamMode!, Write!, LockReadWrite!, Replace!,  lEncoding)
+
+lbl_data = Blob(ls_Emp_Input, lEncoding)
+
+li_rtn = FileWriteEx(li_FileNum, lbl_data)
+
+FileClose(li_FileNum)
+
+RETURN TRUE
 end function
 
 on w_main.create
@@ -1167,7 +1178,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-04-24"), Time("17:01:57.000000"))
+datetime value = DateTime(Date("2023-04-25"), Time("10:29:35.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1191,7 +1202,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-04-24"), Time("17:01:57.000000"))
+datetime value = DateTime(Date("2023-04-25"), Time("10:29:35.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
