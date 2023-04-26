@@ -634,6 +634,7 @@ Datetime ldt_AvailabeTime, ldt_ExpirationTime
 String ls_MinimumCompatibleVersion
 Integer li_ProductVersion1,  li_ProductVersion2,  li_ProductVersion3,  li_ProductVersion4
 String ls_RuntimeVersion, ls_DeployVersion
+string ls_version[]
 
 li_FileNum = FileOpen(as_FilePathControl, LineMode!, Read!, LockRead!)
 
@@ -665,20 +666,16 @@ IF is_project_type="PB Native" THEN
 	
 	FileClose(li_FileNum)
 	
-	li_ProductVersion1 = integer( mid(ls_line, pos(ls_line, ":") + 1, pos(ls_line, ",") - pos(ls_line, ":")  - 1) )
+	ls_line = gn_fn.of_replaceall(ls_line, "PVN:", "")
 	
-	ls_line = gn_fn.of_replaceall(ls_line, "PVN:"+string(li_ProductVersion1)+",", "")
+	gn_fn.of_tokenized_string_to_array(ls_line, ",", REF ls_version[]) 
 	
-	li_ProductVersion2 =  integer(left(ls_line, pos(ls_line, ",") - 1)) 
+	li_ProductVersion1 = integer( ls_version[1])
+	li_ProductVersion2 =   integer( ls_version[2])
+	li_ProductVersion3 =  integer( ls_version[3])
+	li_ProductVersion4 =  integer( ls_version[4])
 	
-	ls_line = gn_fn.of_replaceall(ls_line, string(li_ProductVersion2)+",", "")
-	
-	li_ProductVersion3 = integer( left(ls_line, pos(ls_line, ",") - 1))
-	
-	ls_line = gn_fn.of_replaceall(ls_line, string(li_ProductVersion3)+",", "")
-	
-	li_ProductVersion4 = integer(ls_line)
-	ls_DeployVersion = ls_line
+	ls_DeployVersion = ls_version[4]
 	
 	ls_MinimumCompatibleVersion = ls_DeployVersion
 	ldt_AvailabeTime = dp_availale.value
@@ -1209,7 +1206,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-04-25"), Time("12:35:29.000000"))
+datetime value = DateTime(Date("2023-04-26"), Time("10:39:14.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -1233,7 +1230,7 @@ datetimeformat format = dtfcustom!
 string customformat = "yyyy-MM-dd HH:mm:ss"
 date maxdate = Date("2999-12-31")
 date mindate = Date("1800-01-01")
-datetime value = DateTime(Date("2023-04-25"), Time("12:35:29.000000"))
+datetime value = DateTime(Date("2023-04-26"), Time("10:39:14.000000"))
 integer textsize = -8
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!

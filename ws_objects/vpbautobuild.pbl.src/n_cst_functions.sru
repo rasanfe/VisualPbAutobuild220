@@ -24,6 +24,7 @@ public function string of_profilestring (string as_section, string as_key, strin
 public function boolean of_iin (any aa_value, any aa_check[])
 public function any of_get_ini_sections ()
 public function string of_decrypt (string as_source)
+public function integer of_tokenized_string_to_array (string as_target, string as_token, ref string as_return_values[])
 end prototypes
 
 public function boolean of_run_bat (string as_script, string as_filename);Boolean lb_rtn
@@ -260,6 +261,32 @@ ls_decrypt = ln_seg.of_decrypt(as_source)
 DESTROY ln_Seg
 
 RETURN ls_decrypt
+end function
+
+public function integer of_tokenized_string_to_array (string as_target, string as_token, ref string as_return_values[]);/*********************************************************************
+Object:			n_cst_functions
+Function:		of_tokenized_string_to_array
+Access:			public
+Description:		Gets the delimited strings. It fills the user-supplied as_return_value
+					with those strings
+Arguments:		string as_target, string as_token, ref string as_return_value[] 
+Return:			integer - number of items in the array
+......................................................................
+History:
+Date			Who	Description
+06-13-2015	reb	Initial version.
+*********************************************************************/
+ long ll_pos
+ 
+ll_pos = pos(as_target, as_token)
+ do while ll_pos > 0
+	as_return_values[UpperBound(as_return_values) + 1] = left(as_target, ll_pos - 1)
+	as_target = right(as_target, len(as_target) + 1 - (ll_pos + len(as_token)))
+	ll_pos = pos(as_target, as_token)
+loop
+if len(as_target) > 0 then as_return_values[UpperBound(as_return_values) + 1] = as_target
+ 
+ return UpperBound(as_return_values)
 end function
 
 on n_cst_functions.create
