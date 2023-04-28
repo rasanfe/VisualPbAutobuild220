@@ -29,8 +29,9 @@ If trim(as_source)="" then return ""
 
 //Leemos el Token del Archivo INI
 ls_token =ProfileString("setup.ini", "Setup", "AppSecurityToken", "")
-ls_Masterkey =  "vpbautobuild"
-ls_MasterIV = "IV002022"
+
+//Obtenemos la Claves Maestras
+of_get_masterkeys(REF ls_masterKey, REF ls_masterIV)
 
 //Obtenemos las Claves del Archivo INI
 IF NOT of_get_token(ls_token, ls_MasterKey, ls_MasterIV, REF ls_key, REF ls_IV) THEN RETURN ""
