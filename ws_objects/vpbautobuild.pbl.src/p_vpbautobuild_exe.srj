@@ -1,14 +1,14 @@
 ﻿$PBExportHeader$p_vpbautobuild_exe.srj
-EXE:vpbautobuild.exe,,0,1,1,0,C:\Program Files (x86)\Appeon\Common\PowerBuilder\Runtime 22.0.0.1900
+EXE:vpbautobuild.exe,,0,1,1,0,C:\Program Files (x86)\Appeon\Common\PowerBuilder\Runtime 22.1.0.2819
 CMP:0,0,0,3,0,0,1
 COM:RSRSYSTEM
 DES:Appeon Power Builder 2022 Product File 64Bits
 CPY:Ramón San Félix Ramón
 PRD:VpbAutobuild220
-PVS:2022.1900.3.13
-PVN:2022,1900,3,13
-FVS:2022.1900.3.13
-FVN:2022,1900,3,13
+PVS:2022.2819.3.14
+PVN:2022,2819,3,14
+FVS:2022.2819.3.14
+FVN:2022,2819,3,14
 MAN:0,asInvoker,0
 PBD:vpbautobuild.pbl,,1
 OBJ:C:\proyecto pw2022\Blog\PowerBuilder\vpbautobuild\vpbautobuild.pbl,w_main,w
